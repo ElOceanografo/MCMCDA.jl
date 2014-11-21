@@ -7,4 +7,6 @@ if ~ isfile("data/test_targets.csv")
 	println("Done.")
 end
 
+include("test_io.jl")
+
 println("Passed all tests.")
