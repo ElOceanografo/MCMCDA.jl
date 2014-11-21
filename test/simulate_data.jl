@@ -1,4 +1,4 @@
-using Distributions, PyPlot, DataFrames
+using Distributions, DataFrames
 using StateSpace
 
 srand(1)
@@ -56,13 +56,14 @@ for i in 1:nsim
 end
 
 # Plot to make sure it worked
-for i in 1:16
-	subplot(4, 4, i)
-	scatter(blips[4i][1, :]', blips[4i][2, :]', 5, "k")
-	for j in 1:ntargets
-		plot(tracks[j][1][1, 1:4i]', tracks[j][1][2, 1:4i]')
-	end
-end
+# using PyPlot
+# for i in 1:16
+# 	subplot(4, 4, i)
+# 	scatter(blips[4i][1, :]', blips[4i][2, :]', 5, "k")
+# 	for j in 1:ntargets
+# 		plot(tracks[j][1][1, 1:4i]', tracks[j][1][2, 1:4i]')
+# 	end
+# end
 
 # Put everything in a DataFrame and save
 dfs = [DataFrame(x = vec(blips[i][1, :]), y = vec(blips[i][2, :]), t=i) 
