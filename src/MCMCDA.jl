@@ -1,6 +1,7 @@
 module MCMCDA
 
 using Distributions, DataFrames, Graphs, StateSpace
+import Base: show
 
 export Blip, 
 	ScanGraph, 
@@ -28,6 +29,14 @@ type ScanGraph
 	graph::AbstractGraph
 	nblips::Vector{Int64}
 	nscans::Int64
+end
+
+function show(io::IO, g::ScanGraph)
+	ns = g.nscans
+	nv = num_vertices(g.graph)
+	ne = num_edges(g.graph)
+	na = sum([e.attributes["active"] for e in edges(g.graph)])
+	println("ScanGraph: $(ns) scans, $(nv) blips, $(ne) links ($(na) active)")
 end
 
 function read_targets(filename)
@@ -67,11 +76,13 @@ function link!(g::ScanGraph, max_dist, max_missed)
 				for n in 1:length(g.scans[j])
 					v1 = g.scans[i][m]
 					v2 = g.scans[j][n]
-					if distance(get_blip(v1), get_blip(v2)) < max_dist
-						e = ExEdge(edge_i, v1, v2)
-						e.attributes["active"] = false
-						add_edge!(g.graph, e)
-						edge_i += 1
+					if ~ (v2 in out_neighbors(v1, g.graph))
+						if distance(get_blip(v1), get_blip(v2)) < max_dist
+							e = ExEdge(edge_i, v1, v2)
+							e.attributes["active"] = false
+							add_edge!(g.graph, e)
+							edge_i += 1
+						end
 					end
 				end
 			end
