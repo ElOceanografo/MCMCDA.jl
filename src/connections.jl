@@ -57,6 +57,19 @@ function has_link_out(v::ExVertex, sg::ScanGraph)
 	return false
 end
 
+in_blips(v::ExVertex, sg::ScanGraph) = [source(e) for e in in_edges(v, sg.graph)]
+out_blips(v::ExVertex, sg::ScanGraph) = [target(e) for e in out_edges(v, sg.graph)]
+
+function next_in_track(v::ExVertex, sg::ScanGraph)
+	for e in out_edges(v, sg.graph)
+		if e.attributes["active"]
+			return target(e)
+		end
+	end
+end
+
+connected(v1::ExVertex, v2::ExVertex, sg::ScanGraph) = v2 in out_blips(v1, sg)
+
 
 function starts_track(v::ExVertex, sg::ScanGraph)
 	return (! has_link_in(v, sg)) && has_link_out(v, sg)
@@ -66,22 +79,51 @@ function ends_track(v::ExVertex, sg::ScanGraph)
 	return has_link_in(v, sg) && (! has_link_out(v, sg))
 end
 
-
-function n_false_targets(sg::ScanGraph)
+function n_targets(sg::ScanGraph, t::Integer)
 	n = 0
-	for v in vertices(sg.graph)
-		if ! in_track(v, sg)
+	for i in 1:length(sg.scans[t])
+		if in_track(sg.scans[t][i], sg)
 			n += 1
 		end
 	end
 	return n
 end
 
-function next_target(v::ExVertex, sg::ScanGraph)
-	for e in out_edges(v, sg.graph)
-		if e.attributes["active"]
-			return target(e)
+function n_targets(sg::ScanGraph)
+	n = 0
+	for i in 1:length(sg.scans)
+		n += n_targets(sg, i)
+	end
+	return n
+end
+
+function n_false_targets(sg::ScanGraph, t::Integer)
+	n = 0
+	for i in 1:length(sg.scans[t])
+		if ! in_track(sg.scans[t][i], sg)
+			n += 1
 		end
 	end
-	return nothing
+	return n
+end
+
+function n_false_targets(sg::ScanGraph)
+	n = 0
+	for i in 1:length(sg.scans)
+		n += n_false_targets(sg, i)
+	end
+	return n
+end
+
+start_time(e::ExEdge) = get_blip(source(e)).t
+end_time(e::ExEdge) = get_blip(target(e)).t
+
+function n_tracks(sg::ScanGraph, t::Integer)
+	n = 0
+	for e in edges(sg.graph)
+		if e.attributes["active"] && start_time(e) < t && end_time(e) > t
+			n += 1
+		end
+	end
+	return n + n_targets(sg, t)
 end

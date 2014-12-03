@@ -6,7 +6,7 @@ function track_loglikelihood(v::ExVertex, sg::ScanGraph,
 	state_filt = MvNormal(state0, sigma0)
 	while ! ends_track(v, sg)
 		state_pred = predict(track_model, state_filt)
-		v_next = next_target(v, sg)
+		v_next = next_in_track(v, sg)
 		state_filt = update(track_model, state_pred, v_next.attributes["blip"].x)
 		LL += logpdf(state_pred, mean(state_filt))
 		LL += logpdf(observe(track_model, state_filt), v_next.attributes["blip"].x)

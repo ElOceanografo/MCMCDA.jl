@@ -9,6 +9,6 @@ end
 
 include("test_io.jl")
 include("test_connections.jl")
-include("test_stats.jl")
+include("test_probabilities.jl")
 
 println("Passed all tests.")
