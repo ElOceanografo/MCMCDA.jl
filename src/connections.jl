@@ -4,19 +4,19 @@
 # max_missed = min(g.nscans - 1, max_missed)
 
 
-function connect_graph!(g::ScanGraph, max_distance, max_missed)
+function connect_graph!(sg::ScanGraph, max_distance, max_missed)
 	edge_i = 1
-	for i in 1:(g.nscans - max_missed)
+	for i in 1:(sg.nscans - max_missed)
 		for j in (i + 1):(i + max_missed)
-			for m in 1:length(g.scans[i])
-				for n in 1:length(g.scans[j])
-					v1 = g.scans[i][m]
-					v2 = g.scans[j][n]
-					if ! (v2 in out_neighbors(v1, g.graph))
+			for m in 1:length(sg.scans[i])
+				for n in 1:length(sg.scans[j])
+					v1 = sg.scans[i][m]
+					v2 = sg.scans[j][n]
+					if ! (v2 in out_neighbors(v1, sg.graph))
 						if distance(get_blip(v1), get_blip(v2)) < max_distance
 							e = ExEdge(edge_i, v1, v2)
 							e.attributes["active"] = false
-							add_edge!(g.graph, e)
+							add_edge!(sg.graph, e)
 							edge_i += 1
 						end
 					end
