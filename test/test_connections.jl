@@ -43,3 +43,9 @@ end
 @assert has_link_in(v5, blips)
 @assert in_track(v5, blips)
 
+@assert n_targets(blips, 1) == 1
+@assert n_false_targets(blips, 1) == 108
+@assert n_targets(blips, 4) == 0
+@assert n_targets(blips, 5) == 1
+@assert n_false_targets(blips, 5) == 93
+@assert n_targets(blips) == 5
