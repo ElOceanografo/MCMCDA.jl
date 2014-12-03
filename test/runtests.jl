@@ -1,4 +1,4 @@
-using MCMCDA
+using MCMCDA, StateSpace, Graphs
 using Base.Test
 
 if ~ isfile("data/test_targets.csv")
@@ -8,5 +8,7 @@ if ~ isfile("data/test_targets.csv")
 end
 
 include("test_io.jl")
+include("test_connections.jl")
+include("test_stats.jl")
 
 println("Passed all tests.")
