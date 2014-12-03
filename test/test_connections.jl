@@ -32,15 +32,18 @@ end
 @assert starts_track(v1, blips)
 @assert has_link_out(v1, blips)
 @assert in_track(v1, blips)
+@assert n_tracks_started(blips, 1) == 1
 
 @assert has_link_in(v2, blips)
 @assert in_track(v2, blips)
 @assert has_link_out(v2, blips)
 @assert connected(v1, v2, blips)
+@assert n_tracks_started(blips, 2) == n_tracks_ended(blips, 2) == 0
 
 @assert has_link_in(v3, blips)
 @assert in_track(v3, blips)
 @assert ends_track(v3, blips)
+@assert n_tracks_ended(blips, 3) == 1
 
 @assert starts_track(v4, blips)
 @assert has_link_out(v4, blips)
@@ -61,3 +64,4 @@ end
 @assert n_tracks(blips, 2) == n_targets(blips, 2)
 @assert n_tracks(blips, 17) == 1
 @assert n_tracks(blips, 17) > n_targets(blips, 17)
+

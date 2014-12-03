@@ -75,6 +75,7 @@ function starts_track(v::ExVertex, sg::ScanGraph)
 	return (! has_link_in(v, sg)) && has_link_out(v, sg)
 end
 
+
 function ends_track(v::ExVertex, sg::ScanGraph)
 	return has_link_in(v, sg) && (! has_link_out(v, sg))
 end
@@ -126,4 +127,25 @@ function n_tracks(sg::ScanGraph, t::Integer)
 		end
 	end
 	return n + n_targets(sg, t)
+end
+
+function n_tracks_started(sg::ScanGraph, t::Integer)
+	n = 0
+	for v in sg.scans[t]
+		if starts_track(v, sg)
+			n += 1
+		end
+	end
+	return n
+end
+
+
+function n_tracks_ended(sg::ScanGraph, t::Integer)
+	n = 0
+	for v in sg.scans[t]
+		if ends_track(v, sg)
+			n += 1
+		end
+	end
+	return n
 end
