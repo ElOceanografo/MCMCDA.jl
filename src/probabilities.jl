@@ -16,16 +16,25 @@ function track_loglikelihood(v::ExVertex, sg::ScanGraph,
 end
 
 
-function loglikelihood(sg::ScanGraph, lambda::Float64, 
-		track_model::LinearGaussianSSM)
+function loglikelihood(sg::ScanGraph, lambda_f::Float64, 
+		track_model::LinearGaussianSSM, t1, t2)
 	LL = 0
-	LL += logpdf(Poisson(lambda * sg.nscans), n_false_targets(sg))
-	for v in vertices(sg.graph)
-		if starts_track(v, sg)
-			LL += track_loglikelihood(v, sg, track_model)
+	for i in t1:t2
+		# false detections
+		LL += logpdf(Poisson(lambda_f), n_false_targets(sg, i))
+		# actual targets
+		for v in sg.scans[i]
+			if starts_track(v, sg)
+				LL += track_loglikelihood(v, sg, track_model)
+			end
 		end
 	end
 	return LL
+end
+
+function loglikelihood(sg::ScanGraph, lambda_f::Float64, 
+		track_model::LinearGaussianSSM)
+	return loglikelihood(sg, lambda_f, track_model, 1, sg.nscans)
 end
 
 function summary_numbers(sg::ScanGraph, i::Integer)
@@ -39,8 +48,7 @@ function summary_numbers(sg::ScanGraph, i::Integer)
 	return (zt, ct, dt, gt, at, ft)
 end
 
-function config_logprior(sg::ScanGraph, params::Vector{Float64}, vol::Float64, 
-		t1::Integer, t2::Integer)
+function config_logprior(sg::ScanGraph, params::Vector{Float64}, t1::Integer, t2::Integer)
 	# parameters
 	pz, pd, lambda_b, lambda_f = params
 	@assert (pz > 0) && (pd > 0) "Probabilities must be > 0"
@@ -52,8 +60,23 @@ function config_logprior(sg::ScanGraph, params::Vector{Float64}, vol::Float64,
 		# add log probabilities for each piece of the prior (Oh et al eqn. 9)
 		LP += zt * log(pz) + ct * log(1 - pz)
 		LP += dt * log(pd) +  gt * log(1 - pd)
-		LP += at * log(lambda_b * vol)
-		LP += ft * log(lambda_f * vol)
+		LP += at * log(lambda_b)
+		LP += ft * log(lambda_f)
 	end
 	return LP
+end
+
+function config_logprior(sg::ScanGraph, params::Vector{Float64})
+	return config_logprior(sg, params, 1, sg.nscans)
+end
+
+function log_posterior(sg::ScanGraph, params::Vector{Float64}, 
+		track_model::LinearGaussianSSM, t1, t2)
+	LL = loglikelihood(sg, params[4], track_model, t1, t2)
+	return LL + config_logprior(sg, params, t1, t2)
+end
+
+function log_posterior(sg::ScanGraph, params::Vector{Float64}, 
+		track_model::LinearGaussianSSM)
+	log_posterior(sg, params, track_model, 1, sg.nscans)
 end

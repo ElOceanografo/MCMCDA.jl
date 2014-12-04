@@ -4,9 +4,9 @@
 nsim = 64
 ntargets = 5
 max_distance = 1e3 # 1 km square
-lambda_f = 1.0 / 100^2 # one false alarm per 10,000 square m per timestep
+lambda_f = 100.0 #1.0 / 100^2 # one false alarm per 10,000 square m per timestep
 vol = max_distance^2
-lambda_b = ntargets / (nsim * vol)
+lambda_b = ntargets / nsim
 p_missing = 0.05
 p_detect = 1 - p_missing
 p_disappear = 1e-4
@@ -27,12 +27,15 @@ track_model = LinearGaussianSSM(F, V, G, W)
 
 println("Calculating cofiguration prior...")
 params = [p_disappear, p_detect, lambda_b, lambda_f]
-LP = config_logprior(blips, params, vol, 1, nsim)
-@time LP = config_logprior(blips, params, vol, 1, nsim)
+LP = config_logprior(blips, params)
+@time LP = config_logprior(blips, params)
 println(LP)
 
 
 println("Calculating likelihood...")
-LL = loglikelihood(blips, lambda_f * vol, track_model)
-@time LL = loglikelihood(blips, lambda_f * vol, track_model)
+LL = loglikelihood(blips, lambda_f, track_model)
+@time LL = loglikelihood(blips, lambda_f, track_model)
 println(LL)
+
+Lpost = log_posterior(blips, params, track_model)
+@assert Lpost == LL + LP
