@@ -80,6 +80,7 @@ function ends_track(v::ExVertex, sg::ScanGraph)
 	return has_link_in(v, sg) && (! has_link_out(v, sg))
 end
 
+## Number of detected targets (i.e., blips assigned to a track)
 function n_targets(sg::ScanGraph, t::Integer)
 	n = 0
 	for i in 1:length(sg.scans[t])
@@ -98,6 +99,7 @@ function n_targets(sg::ScanGraph)
 	return n
 end
 
+## Number of false targets (i.e., blips not assigned to a track; clutter)
 function n_false_targets(sg::ScanGraph, t::Integer)
 	n = 0
 	for i in 1:length(sg.scans[t])
@@ -116,9 +118,11 @@ function n_false_targets(sg::ScanGraph)
 	return n
 end
 
+
 start_time(e::ExEdge) = get_blip(source(e)).t
 end_time(e::ExEdge) = get_blip(target(e)).t
 
+## Number of targets (detected and undetected) present
 function n_tracks(sg::ScanGraph, t::Integer)
 	n = 0
 	for e in edges(sg.graph)
@@ -129,6 +133,7 @@ function n_tracks(sg::ScanGraph, t::Integer)
 	return n + n_targets(sg, t)
 end
 
+## Number of tracks starting in this timestep
 function n_tracks_started(sg::ScanGraph, t::Integer)
 	n = 0
 	for v in sg.scans[t]
@@ -139,7 +144,7 @@ function n_tracks_started(sg::ScanGraph, t::Integer)
 	return n
 end
 
-
+## Number of tracks ending in this timestep
 function n_tracks_ended(sg::ScanGraph, t::Integer)
 	n = 0
 	for v in sg.scans[t]
