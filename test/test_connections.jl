@@ -65,3 +65,5 @@ end
 @assert n_tracks(blips, 17) == 1
 @assert n_tracks(blips, 17) > n_targets(blips, 17)
 
+@assert n_tracks(blips) == 3
+@assert n_tracks_started(blips) == 3

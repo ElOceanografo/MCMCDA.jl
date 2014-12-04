@@ -16,6 +16,8 @@ function connect_graph!(sg::ScanGraph, max_distance, max_missed)
 						if distance(get_blip(v1), get_blip(v2)) < max_distance
 							e = ExEdge(edge_i, v1, v2)
 							e.attributes["active"] = false
+							e.attributes["proposed"] = false
+							e.attributes["weight"] = 0.0
 							add_edge!(sg.graph, e)
 							edge_i += 1
 						end
@@ -143,6 +145,19 @@ function n_tracks_started(sg::ScanGraph, t::Integer)
 	end
 	return n
 end
+
+## Number of tracks in entire graph
+function n_tracks_started(sg::ScanGraph)
+	n = 0
+	for v in vertices(sg.graph)
+		if starts_track(v, sg)
+			n += 1
+		end
+	end
+	return n
+end
+
+n_tracks(sg::ScanGraph) = n_tracks_started(sg)
 
 ## Number of tracks ending in this timestep
 function n_tracks_ended(sg::ScanGraph, t::Integer)
