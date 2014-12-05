@@ -18,18 +18,18 @@ extend!(va, blips)
 e, vb = next_in_track(va, blips)
 @assert e.attributes["active"]
 @assert e.attributes["proposed"]
-@assert sum([e.attributes["proposed"] for e in edges(blips.graph)]) > 0
+@assert n_proposed(blips) > 0
 
 reject_move!(blips)
 @assert ! e.attributes["active"]
-@assert sum([e.attributes["proposed"] for e in edges(blips.graph)]) == 0
+@assert n_proposed(blips) == 0
 @assert e.attributes["freq_inactive"] == 1
 
 extend!(va, blips)
 e, vb = next_in_track(va, blips)
 accept_move!(blips)
 
-@assert sum([e.attributes["proposed"] for e in edges(blips.graph)]) == 0
+@assert n_proposed(blips) == 0
 @assert e.attributes["active"]
 @assert e.attributes["freq_active"] == 1
 

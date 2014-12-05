@@ -171,6 +171,14 @@ function n_tracks_ended(sg::ScanGraph, t::Integer)
 	return n
 end
 
+
+function n_proposed(sg::ScanGraph, t1::Integer, t2::Integer)
+	return return sum(Bool[e.attributes["proposed"] for e in edges(sg.graph)])
+end
+
+n_proposed(sg::ScanGraph) = n_proposed(sg, 1, sg.nscans)
+
+
 function track_start_indices(sg::ScanGraph)
 	return find(Bool[starts_track(v, sg) for v in vertices(sg.graph)])
 end
@@ -194,4 +202,3 @@ end
 function in_track_indices(sg::ScanGraph, t::Integer)
 	return find(Bool[in_track(v, sg) for v in sg.scans[t]])
 end
-
