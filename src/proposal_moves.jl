@@ -132,11 +132,39 @@ end
 propose_update!(sg::ScanGraph, gamma=0.1) = propose_update!(sg, 1, sg.nscans, gamma)
 
 
+function attempt_switch!(v1::ExVertex, v2::ExVertex, sg::ScanGraph)
+	if ends_track(v1, sg) | ends_track(v2, sg)
+		return false
+	end
+	e1, v1_next = next_in_track(v1, sg)
+	e2, v2_next = next_in_track(v2, sg)
+	e_cross12 = connecting_edge(v1, v2_next, sg)
+	e_cross21 = connecting_edge(v2, v1_next, sg)
+	if e_cross12 != nothing && e_cross21 != nothing
+		e1.attributes["active"] = false
+		e2.attributes["active"] = false
+		e_cross12.attributes["active"] = true
+		e_cross21.attributes["active"] = true
+		for e in [e1, e2, e_cross12, e_cross21]
+			e.attributes["proposed"] = true
+		end
+		return true
+	end
+	return false #fall through condition
+end
+
 function propose_switch!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
-	# find two tracks in t1:t2
-	# edges12
-	# edges21
-	# 
+	for t in shuffle([t1:(t2-1)])
+		ii = in_track_indices(sg, t)
+		if length(ii) > 1
+			i1, i2 = sample(ii, 2)
+			v1, v2 = sg.scans[t][[i1, i2]]
+			success = attempt_switch!(v1, v2, sg)
+			if success
+				return
+			end
+		end
+	end
 end
 propose_switch!(sg::ScanGraph, gamma=0.1) = propose_switch!(sg, 1, sg.nscans, gamma)
 
