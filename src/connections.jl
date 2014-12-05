@@ -71,6 +71,14 @@ function next_in_track(v::ExVertex, sg::ScanGraph)
 	end
 end
 
+function prev_in_track(v::ExVertex, sg::ScanGraph)
+	for e in in_edges(v, sg.graph)
+		if e.attributes["active"]
+			return (e, source(e))
+		end
+	end
+end
+
 connected(v1::ExVertex, v2::ExVertex, sg::ScanGraph) = v2 in out_blips(v1, sg)
 
 
@@ -82,16 +90,24 @@ function ends_track(v::ExVertex, sg::ScanGraph)
 	return has_link_in(v, sg) && (! has_link_out(v, sg))
 end
 
-function track_length(v1::ExVertex, sg::ScanGraph)
+
+function track_length(v1::ExVertex, sg::ScanGraph, forward=true)
 	n = 0
-	while has_link_out(v1, sg)
-		n += 1
-		e, v2 = next_in_track(v1, sg)
-		v1 = v2
+	if forward
+		while has_link_out(v1, sg)
+			n += 1
+			e, v2 = next_in_track(v1, sg)
+			v1 = v2
+		end
+	else
+		while has_link_in(v1, sg)
+			n += 1
+			e, v2 = prev_in_track(v1, sg)
+			v1 = v2
+		end
 	end
 	return n
 end
-
 
 ## Number of detected targets (i.e., blips assigned to a track)
 function n_targets(sg::ScanGraph, t::Integer)
