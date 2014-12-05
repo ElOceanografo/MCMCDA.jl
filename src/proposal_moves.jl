@@ -1,5 +1,5 @@
 function extend!(v::ExVertex, sg::ScanGraph, gamma=0.1)
-	@assert ! in_track(v, sg)
+	@assert ! in_track(v, sg) | ends_track(v, sg)
 	eds = out_edges(v, sg.graph)
 	while (length(eds) > 0) && (rand() > gamma)
 		inactive_indices = find(Bool[! e.attributes["active"] for e in eds])
@@ -57,16 +57,24 @@ function propose_split!(sg::ScanGraph, t1::Integer, t2::Integer)
 end
 propose_split!(sg::ScanGraph) = propose_split!(sg, 1, sg.nscans)
 
+
 function propose_merge!(sg::ScanGraph, t1::Integer, t2::Integer)
 	# find edges connecting two tracks (if any)
 	# choose one and connect it
 end
 propose_merge!(sg::ScanGraph) = propose_merge!(sg, 1, sg.nscans)
 
-function propose_extend!(sg::ScanGraph, t1::Integer, t2::Integer)
+
+function propose_extend!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
 	# choose random track
+	end_i = track_end_indices(sg, t1, t2)
+	verts = filter(v -> out_degree(v, sg.graph) > 0, vertices(sg.graph)[end_i])
+	v = sample(verts)
 	# extend from last vertex
+	extend!(v, sg, gamma)
 end
+propose_extend!(sg::ScanGraph, gamma=0.1) = propose_extend!(sg, 1, sg.nscans, gamma)
+
 
 function propose_reduce!(sg::ScanGraph, t1::Integer, t2::Integer)
 	#function body
