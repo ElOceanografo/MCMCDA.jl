@@ -67,3 +67,5 @@ end
 
 @assert n_tracks(blips) == 3
 @assert n_tracks_started(blips) == 3
+
+@assert track_start_indices(blips) == [107, 530, 1594]

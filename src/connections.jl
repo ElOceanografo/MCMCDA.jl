@@ -17,7 +17,8 @@ function connect_graph!(sg::ScanGraph, max_distance, max_missed)
 							e = ExEdge(edge_i, v1, v2)
 							e.attributes["active"] = false
 							e.attributes["proposed"] = false
-							e.attributes["weight"] = 0.0
+							e.attributes["freq_active"] = 0
+							e.attributes["freq_inactive"] = 0
 							add_edge!(sg.graph, e)
 							edge_i += 1
 						end
@@ -65,7 +66,7 @@ out_blips(v::ExVertex, sg::ScanGraph) = [target(e) for e in out_edges(v, sg.grap
 function next_in_track(v::ExVertex, sg::ScanGraph)
 	for e in out_edges(v, sg.graph)
 		if e.attributes["active"]
-			return target(e)
+			return (e, target(e))
 		end
 	end
 end
@@ -168,4 +169,8 @@ function n_tracks_ended(sg::ScanGraph, t::Integer)
 		end
 	end
 	return n
+end
+
+function track_start_indices(sg::ScanGraph)
+	return find(Bool[starts_track(v, sg) for v in vertices(sg.graph)])
 end
