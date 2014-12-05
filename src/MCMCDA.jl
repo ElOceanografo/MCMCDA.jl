@@ -20,6 +20,7 @@ export Blip,
 	ends_track,
 	n_tracks_started,
 	n_tracks_ended,
+	track_start_indices,
 	in_blips,
 	out_blips,
 	next_in_track,
@@ -31,7 +32,18 @@ export Blip,
 	all_edges,
 	start_time,
 	end_time,
-	n_tracks
+	n_tracks,
+	propose_birth!,
+	propose_death!,
+	propose_split!,
+	propose_merge!,
+	propose_extend!,
+	propose_reduce!,
+	propose_update!,
+	propose_switch!,
+	propose_move!,
+	undo_move!,
+	accept_move!
 
 #################################################
 
@@ -39,5 +51,6 @@ include("types.jl")
 include("io.jl")
 include("connections.jl")
 include("probabilities.jl")
+include("proposal_moves.jl")
 
 end # module
