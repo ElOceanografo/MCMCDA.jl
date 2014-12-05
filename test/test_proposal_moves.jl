@@ -75,4 +75,9 @@ propose_merge!(blips, 1, 6)
 @assert n_targets(blips) == n2
 accept_move!(blips)
 
+for i in 1:20
+	propose_update!(blips)
+	accept_move!(blips)
+end
+
 # propose_move!(blips, 1, blips.nscans)

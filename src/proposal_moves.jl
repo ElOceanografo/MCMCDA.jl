@@ -1,8 +1,13 @@
 function extend!(v::ExVertex, sg::ScanGraph, gamma=0.1)
-	@assert ! in_track(v, sg) | ends_track(v, sg)
+	if in_track(v, sg) && ! ends_track(v, sg)
+		return
+	end
 	eds = out_edges(v, sg.graph)
 	while (length(eds) > 0) && (rand() > gamma)
 		inactive_indices = find(Bool[! e.attributes["active"] for e in eds])
+		if length(inactive_indices) == 0
+			break
+		end
 		e = eds[sample(inactive_indices)]
 		e.attributes["active"] = true
 		e.attributes["proposed"] = true
@@ -108,9 +113,23 @@ end
 propose_reduce!(sg::ScanGraph) = propose_reduce!(sg, 1, sg.nscans)
 
 
-function propose_update!(sg::ScanGraph, t1::Integer, t2::Integer)
-	#function body
+function propose_update!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
+	# select track
+	i = sample(track_start_indices(sg, t1, t2))
+	v1 = vertices(sg.graph)[i]
+	# select vertex in track with > 1 out edge
+	eds, verts = get_track(v1, sg)
+	fork_i = find(v -> out_degree(v, sg.graph) > 1, verts[1:end-1])
+	if length(fork_i) > 0
+		i = sample(fork_i)
+		e = eds[i]
+		e.attributes["active"] = false
+		e.attributes["proposed"] = true
+		extend!(verts[i], sg, gamma)
+	end
 end
+propose_update!(sg::ScanGraph, gamma=0.1) = propose_update!(sg, 1, sg.nscans, gamma)
+
 
 function propose_switch!(sg::ScanGraph, t1::Integer, t2::Integer)
 	#function body
