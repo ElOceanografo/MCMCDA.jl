@@ -187,6 +187,23 @@ function track_start_indices(sg::ScanGraph, t::Integer)
 	return find(Bool[starts_track(v, sg) for v in sg.scans[t]])
 end
 
+function track_start_indices(sg::ScanGraph, t1::Integer, t2::Integer)
+	# Special case: all scans specified.  Calling the other method will
+	# be a bit faster, because the array doesn't have to be bult up.
+	if t1 == 1 && t2 == sg.nscans
+		return track_start_indices(sg)
+	end
+	indices = Int64[]
+	for i in t1:t2
+		for v in sg.scans[i]
+			if starts_track(v, sg)
+				push!(indices, v.index)
+			end
+		end
+	end
+	return indices
+end
+
 function false_target_indices(sg::ScanGraph)
 	return find(Bool[! in_track(v, sg) for v in vertices(sg.graph)])
 end
