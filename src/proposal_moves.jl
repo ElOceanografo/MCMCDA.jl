@@ -13,19 +13,23 @@ end
 
 function propose_birth!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
 	t = sample(t1:t2)
-	v1 = sg.scans[t][false_target_indices(sg, t)]
-	extend!(v1, sg, gamma)
+	v = sg.scans[t][sample(false_target_indices(sg, t))]
+	extend!(v, sg, gamma) # if no edges out, will do nothing
 end
+propose_birth!(sg::ScanGraph, gamma=0.1) = propose_birth!(sg, 1, sg.nscans, gamma)
 
 function propose_death!(sg::ScanGraph, t1::Integer, t2::Integer)
-	track_start_indices = find(Bool[starts_track(v, sg) for v in edges(sg.graph)])
-	v1 = vertices(sg.graph)[sample(track_start_indices)]
+	i = sample(track_start_indices(sg, t1, t2))
+	v1 = vertices(sg.graph)[i]
 	while has_link_out(v1, sg)
-		e2, v2 = next_in_track(v1)
+		e2, v2 = next_in_track(v1, sg)
 		e2.attributes["proposed"] = true
 		e2.attributes["active"] = false
+		v1 = v2
 	end
 end
+propose_death!(sg::ScanGraph) = propose_death!(sg, 1, sg.nscans)
+
 
 function propose_split!(sg::ScanGraph, t1::Integer, t2::Integer)
 	# choose random track
