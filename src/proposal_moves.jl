@@ -60,7 +60,23 @@ propose_split!(sg::ScanGraph) = propose_split!(sg, 1, sg.nscans)
 
 function propose_merge!(sg::ScanGraph, t1::Integer, t2::Integer)
 	# find edges connecting two tracks (if any)
+	start_i = track_start_indices(sg, t1, t2)
+	end_i = track_end_indices(sg, t1, t2)
+	eds = ExEdge[]
+	for i in start_i, j in end_i
+		v1 = vertices(sg.graph)[i]
+		v2 = vertices(sg.graph)[j]
+		e = connecting_edge(v1, v2, sg)
+		if e != nothing && ! e.attributes["active"]
+			push!(eds, e)
+		end
+	end
 	# choose one and connect it
+	if length(eds) > 0
+		e = sample(eds)
+		e.attributes["active"] = true
+		e.attributes["proposed"] = true
+	end
 end
 propose_merge!(sg::ScanGraph) = propose_merge!(sg, 1, sg.nscans)
 

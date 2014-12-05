@@ -54,13 +54,25 @@ end
 n1 = n_tracks_started(blips)
 propose_split!(blips)
 @assert n_tracks_started(blips) == n1 + 1
+accept_move!(blips)
 
 n1 = n_targets(blips)
 propose_extend!(blips)
 @assert n_targets(blips) > n1
+accept_move!(blips)
 
 n1 = n_targets(blips)
 propose_reduce!(blips)
 @assert n_targets(blips) < n1
+accept_move!(blips)
+
+ea, va = next_in_track(v3, blips)
+ea.attributes["active"] = false
+n1 = sum([e.attributes["active"] for e in edges(blips.graph)])
+n2 = n_targets(blips)
+propose_merge!(blips, 1, 6)
+@assert sum([e.attributes["active"] for e in edges(blips.graph)]) == n1 + 1
+@assert n_targets(blips) == n2
+accept_move!(blips)
 
 # propose_move!(blips, 1, blips.nscans)

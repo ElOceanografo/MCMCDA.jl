@@ -81,6 +81,13 @@ end
 
 connected(v1::ExVertex, v2::ExVertex, sg::ScanGraph) = v2 in out_blips(v1, sg)
 
+function connecting_edge(v1::ExVertex, v2::ExVertex, sg::ScanGraph)
+	for e in out_edges(v1, sg.graph)
+		if target(e) == v2
+			return e
+		end
+	end
+end
 
 function starts_track(v::ExVertex, sg::ScanGraph)
 	return (! has_link_in(v, sg)) && has_link_out(v, sg)
@@ -201,7 +208,6 @@ end
 function n_proposed(sg::ScanGraph, t1::Integer, t2::Integer)
 	return return sum(Bool[e.attributes["proposed"] for e in edges(sg.graph)])
 end
-
 n_proposed(sg::ScanGraph) = n_proposed(sg, 1, sg.nscans)
 
 
