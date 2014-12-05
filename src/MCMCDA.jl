@@ -51,7 +51,8 @@ export Blip,
 	propose_switch!,
 	propose_move!,
 	reject_move!,
-	accept_move!
+	accept_move!,
+	mcmcda!
 
 #################################################
 
@@ -60,5 +61,6 @@ include("io.jl")
 include("connections.jl")
 include("probabilities.jl")
 include("proposal_moves.jl")
+include("samplers.jl")
 
 end # module
