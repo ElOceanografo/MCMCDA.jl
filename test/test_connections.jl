@@ -33,7 +33,6 @@ end
 @assert has_link_out(v1, blips)
 @assert in_track(v1, blips)
 @assert n_tracks_started(blips, 1) == 1
-println(track_length(v1, blips))
 @assert track_length(v1, blips) == 2
 
 @assert has_link_in(v2, blips)

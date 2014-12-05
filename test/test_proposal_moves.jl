@@ -44,4 +44,15 @@ propose_death!(blips)
 
 accept_move!(blips)
 
+# make sure there's at least one long track to split
+for v in blips.scans[1]
+	if ! in_track(v, blips)
+		extend!(v, blips)
+	end
+end
+
+n1 = n_tracks_started(blips)
+propose_split!(blips)
+@assert n_tracks_started(blips) == n1 + 1
+
 # propose_move!(blips, 1, blips.nscans)

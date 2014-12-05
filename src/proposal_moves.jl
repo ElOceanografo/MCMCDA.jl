@@ -32,16 +32,39 @@ propose_death!(sg::ScanGraph) = propose_death!(sg, 1, sg.nscans)
 
 
 function propose_split!(sg::ScanGraph, t1::Integer, t2::Integer)
-	# choose random track
+	# choose random track longer than 4
+	track_i = track_start_indices(sg, t1, t2)
+	verts = vertices(sg.graph)[track_i]
+	long_track_i = find([track_length(v, sg) > 4 for v in verts])
+	if long_track_i == []
+		return # no long tracks, give up
+	end
+	v1 = verts[sample(long_track_i)]
+	n = track_length(v1, sg)
+	nmax = sample(1:n)
+	j = 1
+	while true
+		e, v2 = next_in_track(v1, sg)
+		if j >= nmax
+			e.attributes["proposed"] = true
+			e.attributes["active"] = false
+			return 
+		else
+			v1 = v2
+			j += 1
+		end
+	end
 end
+propose_split!(sg::ScanGraph) = propose_split!(sg, 1, sg.nscans)
 
 function propose_merge!(sg::ScanGraph, t1::Integer, t2::Integer)
-	#function body
+	# find edges connecting two tracks (if any)
+	# choose one and connect it
 end
 
 function propose_extend!(sg::ScanGraph, t1::Integer, t2::Integer)
 	# choose random track
-	# extend
+	# extend from last vertex
 end
 
 function propose_reduce!(sg::ScanGraph, t1::Integer, t2::Integer)
