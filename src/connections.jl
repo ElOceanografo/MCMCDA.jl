@@ -79,6 +79,18 @@ function prev_in_track(v::ExVertex, sg::ScanGraph)
 	end
 end
 
+function get_track(v1::ExVertex, sg::ScanGraph)
+	verts = [v1]
+	eds = ExEdge[]
+	while has_link_out(v1, sg)
+		e, v2 = next_in_track(v1, sg)
+		push!(verts, v2)
+		push!(eds, e)
+		v1 = v2
+	end
+	return eds, verts
+end
+
 connected(v1::ExVertex, v2::ExVertex, sg::ScanGraph) = v2 in out_blips(v1, sg)
 
 function connecting_edge(v1::ExVertex, v2::ExVertex, sg::ScanGraph)
