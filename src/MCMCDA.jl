@@ -35,6 +35,7 @@ export Blip,
 	start_time,
 	end_time,
 	n_tracks,
+	extend!,
 	propose_birth!,
 	propose_death!,
 	propose_split!,
@@ -44,7 +45,7 @@ export Blip,
 	propose_update!,
 	propose_switch!,
 	propose_move!,
-	undo_move!,
+	reject_move!,
 	accept_move!
 
 #################################################

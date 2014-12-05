@@ -1,11 +1,20 @@
+function extend!(v::ExVertex, sg::ScanGraph, gamma=0.1)
+	@assert ! in_track(v, sg)
+	eds = out_edges(v, sg.graph)
+	while (length(eds) > 0) && (rand() > gamma)
+		inactive_indices = find(Bool[! e.attributes["active"] for e in eds])
+		e = eds[sample(inactive_indices)]
+		e.attributes["active"] = true
+		e.attributes["proposed"] = true
+		v = target(e, sg.graph)
+		eds = out_edges(v, sg.graph)
+	end
+end
 
 function propose_birth!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
-	# choose time
-	# v1 = choose false target
-	# while target has outgoing edges && rand() > gamma
-	# 	choose random edge
-	#	make it active
-	#	v1 = v2
+	t = sample(t1:t2)
+	v1 = sg.scans[t][false_target_indices(sg, t)]
+	extend!(v1, sg, gamma)
 end
 
 function propose_death!(sg::ScanGraph, t1::Integer, t2::Integer)
@@ -57,14 +66,23 @@ function propose_move!(sg::ScanGraph, t1::Integer, t2::Integer)
 	this_move!(sg, t1, t2)
 end
 
-function undo_move!(sg::ScanGraph, t1::Integer, t2::Integer)
+propose_move!(sg::ScanGraph) = propose_move!(sg, 1, sg.nscans)
+
+function reject_move!(sg::ScanGraph, t1::Integer, t2::Integer)
 	for e in edges(sg.graph)
 		if e.attributes["proposed"]
 			e.attributes["active"] = ! e.attributes["active"]
 			e.attributes["proposed"] = false
 		end
+		if e.attributes["active"]
+			e.attributes["freq_active"] += 1
+		else
+			e.attributes["freq_inactive"] += 1
+		end
 	end
 end
+
+reject_move!(sg::ScanGraph) = reject_move!(sg, 1, sg.nscans)
 
 function accept_move!(sg::ScanGraph, t1::Integer, t2::Integer)
 	for e in edges(sg.graph)
@@ -76,3 +94,5 @@ function accept_move!(sg::ScanGraph, t1::Integer, t2::Integer)
 		e.attributes["proposed"] = false
 	end
 end
+
+accept_move!(sg::ScanGraph) = accept_move!(sg, 1, sg.nscans)
