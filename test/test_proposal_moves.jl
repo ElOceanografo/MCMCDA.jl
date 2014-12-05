@@ -59,4 +59,8 @@ n1 = n_targets(blips)
 propose_extend!(blips)
 @assert n_targets(blips) > n1
 
+n1 = n_targets(blips)
+propose_reduce!(blips)
+@assert n_targets(blips) < n1
+
 # propose_move!(blips, 1, blips.nscans)

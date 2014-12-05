@@ -77,8 +77,20 @@ propose_extend!(sg::ScanGraph, gamma=0.1) = propose_extend!(sg, 1, sg.nscans, ga
 
 
 function propose_reduce!(sg::ScanGraph, t1::Integer, t2::Integer)
-	#function body
+	i = sample(track_end_indices(sg, t1, t2))
+	v1 = vertices(sg.graph)[i]
+	n = track_length(v1, sg, false)
+	n_reduce = sample(1:n)
+	while n_reduce > 0
+		e, v2 = prev_in_track(v1, sg)
+		e.attributes["active"] = false
+		e.attributes["proposed"] = true
+		n_reduce -= 1
+		v1 = v2
+	end
 end
+propose_reduce!(sg::ScanGraph) = propose_reduce!(sg, 1, sg.nscans)
+
 
 function propose_update!(sg::ScanGraph, t1::Integer, t2::Integer)
 	#function body
@@ -101,8 +113,8 @@ function propose_move!(sg::ScanGraph, t1::Integer, t2::Integer)
 	end
 	this_move!(sg, t1, t2)
 end
-
 propose_move!(sg::ScanGraph) = propose_move!(sg, 1, sg.nscans)
+
 
 function reject_move!(sg::ScanGraph, t1::Integer, t2::Integer)
 	for e in edges(sg.graph)
@@ -117,8 +129,8 @@ function reject_move!(sg::ScanGraph, t1::Integer, t2::Integer)
 		end
 	end
 end
-
 reject_move!(sg::ScanGraph) = reject_move!(sg, 1, sg.nscans)
+
 
 function accept_move!(sg::ScanGraph, t1::Integer, t2::Integer)
 	for e in edges(sg.graph)
@@ -130,5 +142,4 @@ function accept_move!(sg::ScanGraph, t1::Integer, t2::Integer)
 		e.attributes["proposed"] = false
 	end
 end
-
 accept_move!(sg::ScanGraph) = accept_move!(sg, 1, sg.nscans)
