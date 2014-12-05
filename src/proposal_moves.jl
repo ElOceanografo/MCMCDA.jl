@@ -98,7 +98,8 @@ propose_extend!(sg::ScanGraph, gamma=0.1) = propose_extend!(sg, 1, sg.nscans, ga
 
 
 function propose_reduce!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
-	i = sample(track_end_indices(sg, t1, t2))
+	end_i = track_end_indices(sg, t1, t2)
+	i = sample(end_i)
 	v1 = vertices(sg.graph)[i]
 	n = track_length(v1, sg, false)
 	n_reduce = sample(1:n)
@@ -141,7 +142,9 @@ propose_switch!(sg::ScanGraph, gamma=0.1) = propose_switch!(sg, 1, sg.nscans, ga
 
 
 function propose_move!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
-	ntracks = n_tracks(sg)
+	ntracks = min(n_tracks(sg, t1, t2),
+				  n_tracks_started(sg, t1, t2),
+				  n_tracks_ended(sg, t1, t2))
 	moves = [propose_birth!, propose_death!, propose_split!, propose_merge!, 
 		propose_extend!, propose_reduce!, propose_update!, propose_switch!]
 	if ntracks > 1

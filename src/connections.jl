@@ -181,6 +181,14 @@ function n_tracks(sg::ScanGraph, t::Integer)
 	return n + n_targets(sg, t)
 end
 
+function n_tracks(sg::ScanGraph, t1::Integer, t2::Integer)
+	n = 0
+	for i in t1:t2
+		n += n_tracks(sg, i)
+	end
+	return n
+end
+
 ## Number of tracks starting in this timestep
 function n_tracks_started(sg::ScanGraph, t::Integer)
 	n = 0
@@ -192,16 +200,17 @@ function n_tracks_started(sg::ScanGraph, t::Integer)
 	return n
 end
 
-## Number of tracks in entire graph
-function n_tracks_started(sg::ScanGraph)
+## Number of tracks in range
+function n_tracks_started(sg::ScanGraph, t1::Integer, t2::Integer)
 	n = 0
-	for v in vertices(sg.graph)
-		if starts_track(v, sg)
-			n += 1
-		end
+	for i in t1:t2
+		n += n_tracks_started(sg, i)
 	end
 	return n
 end
+
+## Number of tracks in entire graph
+n_tracks_started(sg::ScanGraph) = n_tracks_started(sg, 1, sg.nscans)
 
 n_tracks(sg::ScanGraph) = n_tracks_started(sg)
 
@@ -215,6 +224,15 @@ function n_tracks_ended(sg::ScanGraph, t::Integer)
 	end
 	return n
 end
+
+function n_tracks_ended(sg::ScanGraph, t1::Integer, t2::Integer)
+	n = 0
+	for i in t1:t2
+		n += n_tracks_ended(sg, i)
+	end
+	return n
+end
+n_tracks_ended(sg::ScanGraph) = n_tracks_ended(sg, 1, sg.nscans)
 
 
 function n_proposed(sg::ScanGraph, t1::Integer, t2::Integer)
