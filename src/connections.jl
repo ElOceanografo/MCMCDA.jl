@@ -174,3 +174,24 @@ end
 function track_start_indices(sg::ScanGraph)
 	return find(Bool[starts_track(v, sg) for v in vertices(sg.graph)])
 end
+
+function track_start_indices(sg::ScanGraph, t::Integer)
+	return find(Bool[starts_track(v, sg) for v in sg.scans[t]])
+end
+
+function false_target_indices(sg::ScanGraph)
+	return find(Bool[! in_track(v, sg) for v in vertices(sg.graph)])
+end
+
+function false_target_indices(sg::ScanGraph, t::Integer)
+	return find(Bool[! in_track(v, sg) for v in sg.scans[t]])
+end
+
+function in_track_indices(sg::ScanGraph)
+	return find(Bool[in_track(v, sg) for v in vertices(sg.graph)])
+end
+
+function in_track_indices(sg::ScanGraph, t::Integer)
+	return find(Bool[in_track(v, sg) for v in sg.scans[t]])
+end
+

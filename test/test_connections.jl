@@ -69,3 +69,7 @@ end
 @assert n_tracks_started(blips) == 3
 
 @assert track_start_indices(blips) == [107, 530, 1594]
+@assert track_start_indices(blips, 1) == [107]
+
+@assert intersect(false_target_indices(blips), in_track_indices(blips)) == []
+@assert intersect(false_target_indices(blips, 1), in_track_indices(blips, 1)) == []
