@@ -80,4 +80,10 @@ for i in 1:20
 	accept_move!(blips)
 end
 
-# propose_move!(blips, 1, blips.nscans)
+t1 = time()
+for i in 1:100
+	propose_move!(blips, 1, blips.nscans)
+end
+t2 = time()
+println(t2 - t1, " seconds")
+println(100. / (t2 - t1), " moves per second")

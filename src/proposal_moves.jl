@@ -23,7 +23,7 @@ function propose_birth!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
 end
 propose_birth!(sg::ScanGraph, gamma=0.1) = propose_birth!(sg, 1, sg.nscans, gamma)
 
-function propose_death!(sg::ScanGraph, t1::Integer, t2::Integer)
+function propose_death!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
 	i = sample(track_start_indices(sg, t1, t2))
 	v1 = vertices(sg.graph)[i]
 	while has_link_out(v1, sg)
@@ -33,10 +33,10 @@ function propose_death!(sg::ScanGraph, t1::Integer, t2::Integer)
 		v1 = v2
 	end
 end
-propose_death!(sg::ScanGraph) = propose_death!(sg, 1, sg.nscans)
+propose_death!(sg::ScanGraph, gamma=0.1) = propose_death!(sg, 1, sg.nscans, gamma)
 
 
-function propose_split!(sg::ScanGraph, t1::Integer, t2::Integer)
+function propose_split!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
 	# choose random track longer than 4
 	track_i = track_start_indices(sg, t1, t2)
 	verts = vertices(sg.graph)[track_i]
@@ -60,10 +60,10 @@ function propose_split!(sg::ScanGraph, t1::Integer, t2::Integer)
 		end
 	end
 end
-propose_split!(sg::ScanGraph) = propose_split!(sg, 1, sg.nscans)
+propose_split!(sg::ScanGraph, gamma=0.1) = propose_split!(sg, 1, sg.nscans, gamma)
 
 
-function propose_merge!(sg::ScanGraph, t1::Integer, t2::Integer)
+function propose_merge!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
 	# find edges connecting two tracks (if any)
 	start_i = track_start_indices(sg, t1, t2)
 	end_i = track_end_indices(sg, t1, t2)
@@ -83,7 +83,7 @@ function propose_merge!(sg::ScanGraph, t1::Integer, t2::Integer)
 		e.attributes["proposed"] = true
 	end
 end
-propose_merge!(sg::ScanGraph) = propose_merge!(sg, 1, sg.nscans)
+propose_merge!(sg::ScanGraph, gamma=0.1) = propose_merge!(sg, 1, sg.nscans, gamma)
 
 
 function propose_extend!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
@@ -97,7 +97,7 @@ end
 propose_extend!(sg::ScanGraph, gamma=0.1) = propose_extend!(sg, 1, sg.nscans, gamma)
 
 
-function propose_reduce!(sg::ScanGraph, t1::Integer, t2::Integer)
+function propose_reduce!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
 	i = sample(track_end_indices(sg, t1, t2))
 	v1 = vertices(sg.graph)[i]
 	n = track_length(v1, sg, false)
@@ -110,7 +110,7 @@ function propose_reduce!(sg::ScanGraph, t1::Integer, t2::Integer)
 		v1 = v2
 	end
 end
-propose_reduce!(sg::ScanGraph) = propose_reduce!(sg, 1, sg.nscans)
+propose_reduce!(sg::ScanGraph, gamma=0.1) = propose_reduce!(sg, 1, sg.nscans, gamma)
 
 
 function propose_update!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
@@ -131,11 +131,16 @@ end
 propose_update!(sg::ScanGraph, gamma=0.1) = propose_update!(sg, 1, sg.nscans, gamma)
 
 
-function propose_switch!(sg::ScanGraph, t1::Integer, t2::Integer)
-	#function body
+function propose_switch!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
+	# find two tracks in t1:t2
+	# edges12
+	# edges21
+	# 
 end
+propose_switch!(sg::ScanGraph, gamma=0.1) = propose_switch!(sg, 1, sg.nscans, gamma)
 
-function propose_move!(sg::ScanGraph, t1::Integer, t2::Integer)
+
+function propose_move!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
 	ntracks = n_tracks(sg)
 	moves = [propose_birth!, propose_death!, propose_split!, propose_merge!, 
 		propose_extend!, propose_reduce!, propose_update!, propose_switch!]
@@ -148,10 +153,10 @@ function propose_move!(sg::ScanGraph, t1::Integer, t2::Integer)
 	end
 	this_move!(sg, t1, t2)
 end
-propose_move!(sg::ScanGraph) = propose_move!(sg, 1, sg.nscans)
+propose_move!(sg::ScanGraph, gamma=0.1) = propose_move!(sg, 1, sg.nscans, gamma)
 
 
-function reject_move!(sg::ScanGraph, t1::Integer, t2::Integer)
+function reject_move!(sg::ScanGraph)
 	for e in edges(sg.graph)
 		if e.attributes["proposed"]
 			e.attributes["active"] = ! e.attributes["active"]
@@ -164,10 +169,9 @@ function reject_move!(sg::ScanGraph, t1::Integer, t2::Integer)
 		end
 	end
 end
-reject_move!(sg::ScanGraph) = reject_move!(sg, 1, sg.nscans)
 
 
-function accept_move!(sg::ScanGraph, t1::Integer, t2::Integer)
+function accept_move!(sg::ScanGraph)
 	for e in edges(sg.graph)
 		if e.attributes["active"]
 			e.attributes["freq_active"] += 1
@@ -177,4 +181,3 @@ function accept_move!(sg::ScanGraph, t1::Integer, t2::Integer)
 		e.attributes["proposed"] = false
 	end
 end
-accept_move!(sg::ScanGraph) = accept_move!(sg, 1, sg.nscans)
