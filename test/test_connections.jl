@@ -71,6 +71,9 @@ end
 
 @assert track_start_indices(blips) == [107, 530, 1594]
 @assert track_start_indices(blips, 1) == [107]
+@assert track_end_indices(blips) == [334, 641, 1836]
+@assert track_end_indices(blips, 3) == [105]
+
 
 @assert intersect(false_target_indices(blips), in_track_indices(blips)) == []
 @assert intersect(false_target_indices(blips, 1), in_track_indices(blips, 1)) == []

@@ -61,6 +61,7 @@ function propose_merge!(sg::ScanGraph, t1::Integer, t2::Integer)
 	# find edges connecting two tracks (if any)
 	# choose one and connect it
 end
+propose_merge!(sg::ScanGraph) = propose_merge!(sg, 1, sg.nscans)
 
 function propose_extend!(sg::ScanGraph, t1::Integer, t2::Integer)
 	# choose random track
