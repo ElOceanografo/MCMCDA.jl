@@ -1,6 +1,6 @@
 module MCMCDA
 
-using Distributions, DataFrames, Graphs, StateSpace
+using Distributions, DataFrames, StateSpace
 import Base: show
 
 export Blip, 
@@ -60,8 +60,8 @@ export Blip,
 include("types.jl")
 include("io.jl")
 include("connections.jl")
-include("probabilities.jl")
-include("proposal_moves.jl")
-include("samplers.jl")
+# include("probabilities.jl")
+# include("proposal_moves.jl")
+# include("samplers.jl")
 
 end # module
