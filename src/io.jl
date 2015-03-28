@@ -7,7 +7,7 @@ function read_targets(filename)
 	for df in groupby(blip_table, :t)
 		this_scan = Blip[]
 		for i in 1:size(df, 1)
-			b = Blip(vec(array(df[i, [:x, :y]])), Edge[], Edge[])
+			b = Blip(vec(array(df[i, [:x, :y]])), df[i, :t], Edge[], Edge[])
 			push!(this_scan, b)
 			push!(blips, b)
 		end

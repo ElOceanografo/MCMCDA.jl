@@ -3,6 +3,14 @@
 # max_missed = max(max_missed, 1)
 # max_missed = min(g.nscans - 1, max_missed)
 
+function add_edge!(b1::Blip, b2::Blip, sg::ScanGraph)
+	if ! (b2 in out_neighbors(b1))
+		e = Edge(b1, b2, false, false, 0, 0)
+		push!(b1.out_edges, e)
+		push!(b2.in_edges, e)
+		push!(sg.edges, e)
+	end
+end
 
 function connect_graph!(sg::ScanGraph, max_distance, max_missed)
 	for i in 1:(sg.nscans - max_missed)
@@ -11,13 +19,8 @@ function connect_graph!(sg::ScanGraph, max_distance, max_missed)
 				for n in 1:length(sg.scans[j])
 					b1 = sg.scans[i][m]
 					b2 = sg.scans[j][n]
-					if ! (b2 in out_neighbors(b1))
-						if distance(b1, b2) < max_distance
-							e = Edge(b1, b2, false, false, 0, 0)
-							push!(b1.out_edges, e)
-							push!(b2.in_edges, e)
-							push!(sg.edges, e)
-						end
+					if distance(b1, b2) < max_distance
+						add_edge!(b1, b2, sg)
 					end
 				end
 			end
@@ -25,6 +28,27 @@ function connect_graph!(sg::ScanGraph, max_distance, max_missed)
 	end
 end
 
+function has_active_edge_in(b::Blip)
+	for e in b.in_edges
+		if e.active
+			return true
+		end
+	end
+	return false
+end
+
+function has_active_edge_out(b::Blip)
+	for e in b.out_edges
+		if e.active
+			return true
+		end
+	end
+	return false
+end
+
+in_track(b::Blip) = has_active_edge_in(b) | has_active_edge_out(b)
+starts_track(b::Blip) = ! has_active_edge_in(b) & has_active_edge_out(b)
+ends_track(b::Blip) = has_active_edge_in(b) & ! has_active_edge_out(b)
 
 # function n_edges(v::ExVertex, g::AbstractGraph)
 # 	return in_degree(v, g) + out_degree(v, g)
@@ -34,43 +58,21 @@ end
 # 	return [in_edges(v, g), out_edges(v, g)]
 # end
 
-# function in_track(v::ExVertex, sg::ScanGraph)
-# 	return any([e.attributes["active"] for e in all_edges(v, sg.graph)])
-# end
-
-# function has_link_in(v::ExVertex, sg::ScanGraph)
-# 	for e in in_edges(v, sg.graph)
-# 		if e.attributes["active"]
-# 			return true
-# 		end
-# 	end
-# 	return false
-# end
-
-# function has_link_out(v::ExVertex, sg::ScanGraph)
-# 	for e in out_edges(v, sg.graph)
-# 		if e.attributes["active"]
-# 			return true
-# 		end
-# 	end
-# 	return false
-# end
-
 # in_blips(v::ExVertex, sg::ScanGraph) = [source(e) for e in in_edges(v, sg.graph)]
 # out_blips(v::ExVertex, sg::ScanGraph) = [target(e) for e in out_edges(v, sg.graph)]
 
-# function next_in_track(v::ExVertex, sg::ScanGraph)
-# 	for e in out_edges(v, sg.graph)
-# 		if e.attributes["active"]
-# 			return (e, target(e))
+# function next_in_track(b::Blip)
+# 	for e in b.out_edges
+# 		if e.active
+# 			return (e, e.target)
 # 		end
 # 	end
 # end
 
-# function prev_in_track(v::ExVertex, sg::ScanGraph)
-# 	for e in in_edges(v, sg.graph)
-# 		if e.attributes["active"]
-# 			return (e, source(e))
+# function prev_in_track(b::Blip)
+# 	for e in b.in_edges
+# 		if e.active
+# 			return (e, e.source)
 # 		end
 # 	end
 # end
@@ -87,7 +89,7 @@ end
 # 	return eds, verts
 # end
 
-# connected(v1::ExVertex, v2::ExVertex, sg::ScanGraph) = v2 in out_blips(v1, sg)
+connected(b1::Blip, b2::Blip) = b2 in out_neighbors(b1)
 
 # function connecting_edge(v1::ExVertex, v2::ExVertex, sg::ScanGraph)
 # 	for e in out_edges(v1, sg.graph)
@@ -125,110 +127,109 @@ end
 # end
 
 # ## Number of detected targets (i.e., blips assigned to a track)
-# function n_targets(sg::ScanGraph, t::Integer)
-# 	n = 0
-# 	for i in 1:length(sg.scans[t])
-# 		if in_track(sg.scans[t][i], sg)
-# 			n += 1
-# 		end
-# 	end
-# 	return n
-# end
+function n_targets(sg::ScanGraph, t::Integer)
+	n = 0
+	for i in 1:length(sg.scans[t])
+		if in_track(sg.scans[t][i], sg)
+			n += 1
+		end
+	end
+	return n
+end
 
-# function n_targets(sg::ScanGraph)
-# 	n = 0
-# 	for i in 1:length(sg.scans)
-# 		n += n_targets(sg, i)
-# 	end
-# 	return n
-# end
+function n_targets(sg::ScanGraph)
+	n = 0
+	for i in 1:length(sg.scans)
+		n += n_targets(sg, i)
+	end
+	return n
+end
 
 # ## Number of false targets (i.e., blips not assigned to a track; clutter)
-# function n_false_targets(sg::ScanGraph, t::Integer)
-# 	n = 0
-# 	for i in 1:length(sg.scans[t])
-# 		if ! in_track(sg.scans[t][i], sg)
-# 			n += 1
-# 		end
-# 	end
-# 	return n
-# end
+function n_false_targets(sg::ScanGraph, t::Integer)
+	n = 0
+	for i in 1:length(sg.scans[t])
+		if ! in_track(sg.scans[t][i], sg)
+			n += 1
+		end
+	end
+	return n
+end
 
-# function n_false_targets(sg::ScanGraph)
-# 	n = 0
-# 	for i in 1:length(sg.scans)
-# 		n += n_false_targets(sg, i)
-# 	end
-# 	return n
-# end
+function n_false_targets(sg::ScanGraph)
+	n = 0
+	for i in 1:length(sg.scans)
+		n += n_false_targets(sg, i)
+	end
+	return n
+end
 
 
-# start_time(e::ExEdge) = get_blip(source(e)).t
-# end_time(e::ExEdge) = get_blip(target(e)).t
+start_time(e::Edge) = e.source.t
+end_time(e::Edge) = e.target.t
 
-# ## Number of targets (detected and undetected) present
-# function n_tracks(sg::ScanGraph, t::Integer)
-# 	n = 0
-# 	for e in edges(sg.graph)
-# 		if e.attributes["active"] && start_time(e) < t && end_time(e) > t
-# 			n += 1
-# 		end
-# 	end
-# 	return n + n_targets(sg, t)
-# end
+## Number of targets (detected and undetected) present
+function n_tracks(sg::ScanGraph, t::Integer)
+	n = 0
+	for e in sg.edges
+		if e.active && start_time(e) < t && end_time(e) > t
+			n += 1
+		end
+	end
+	return n + n_targets(sg, t)
+end
 
-# function n_tracks(sg::ScanGraph, t1::Integer, t2::Integer)
-# 	n = 0
-# 	for i in t1:t2
-# 		n += n_tracks(sg, i)
-# 	end
-# 	return n
-# end
+function n_tracks(sg::ScanGraph, t1::Integer, t2::Integer)
+	n = 0
+	for i in t1:t2
+		n += n_tracks(sg, i)
+	end
+	return n
+end
 
-# ## Number of tracks starting in this timestep
-# function n_tracks_started(sg::ScanGraph, t::Integer)
-# 	n = 0
-# 	for v in sg.scans[t]
-# 		if starts_track(v, sg)
-# 			n += 1
-# 		end
-# 	end
-# 	return n
-# end
+## Number of tracks starting in this timestep
+function n_tracks_started(sg::ScanGraph, t::Integer)
+	n = 0
+	for blip in sg.scans[t]
+		if starts_track(blip)
+			n += 1
+		end
+	end
+	return n
+end
 
-# ## Number of tracks in range
-# function n_tracks_started(sg::ScanGraph, t1::Integer, t2::Integer)
-# 	n = 0
-# 	for i in t1:t2
-# 		n += n_tracks_started(sg, i)
-# 	end
-# 	return n
-# end
+## Number of tracks in range
+function n_tracks_started(sg::ScanGraph, t1::Integer, t2::Integer)
+	n = 0
+	for i in t1:t2
+		n += n_tracks_started(sg, i)
+	end
+	return n
+end
 
-# ## Number of tracks in entire graph
-# n_tracks_started(sg::ScanGraph) = n_tracks_started(sg, 1, sg.nscans)
+## Number of tracks in entire graph
+n_tracks_started(sg::ScanGraph) = n_tracks_started(sg, 1, sg.nscans)
+n_tracks(sg::ScanGraph) = n_tracks_started(sg, 1, sg.nscans)
 
-# n_tracks(sg::ScanGraph) = n_tracks_started(sg)
+## Number of tracks ending in this timestep
+function n_tracks_ended(sg::ScanGraph, t::Integer)
+	n = 0
+	for blip in sg.scans[t]
+		if ends_track(blip)
+			n += 1
+		end
+	end
+	return n
+end
 
-# ## Number of tracks ending in this timestep
-# function n_tracks_ended(sg::ScanGraph, t::Integer)
-# 	n = 0
-# 	for v in sg.scans[t]
-# 		if ends_track(v, sg)
-# 			n += 1
-# 		end
-# 	end
-# 	return n
-# end
-
-# function n_tracks_ended(sg::ScanGraph, t1::Integer, t2::Integer)
-# 	n = 0
-# 	for i in t1:t2
-# 		n += n_tracks_ended(sg, i)
-# 	end
-# 	return n
-# end
-# n_tracks_ended(sg::ScanGraph) = n_tracks_ended(sg, 1, sg.nscans)
+function n_tracks_ended(sg::ScanGraph, t1::Integer, t2::Integer)
+	n = 0
+	for i in t1:t2
+		n += n_tracks_ended(sg, i)
+	end
+	return n
+end
+n_tracks_ended(sg::ScanGraph) = n_tracks_ended(sg, 1, sg.nscans)
 
 
 # function n_proposed(sg::ScanGraph, t1::Integer, t2::Integer)

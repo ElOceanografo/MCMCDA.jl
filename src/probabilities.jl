@@ -1,20 +1,17 @@
 
-function track_loglikelihood(v::ExVertex, sg::ScanGraph, 
-		track_model::LinearGaussianSSM, sigma0=100)
-	LL = 0
-	state0 = [v.attributes["blip"].x, 0, 0]
+function track_loglikelihood(b0::Blip, track_model::LinearGaussianSSM,
+		sigma0=100.0)
+	loglik = 0
+	state0 = [b0.x, 0, 0]
 	state_filt = MvNormal(state0, sigma0)
-	while ! ends_track(v, sg)
+	for b in iter_track(b0)
 		state_pred = predict(track_model, state_filt)
-		e_next, v_next = next_in_track(v, sg)
-		state_filt = update(track_model, state_pred, v_next.attributes["blip"].x)
-		LL += logpdf(state_pred, mean(state_filt))
-		LL += logpdf(observe(track_model, state_filt), v_next.attributes["blip"].x)
-		v = v_next
+		state_filt = update(track_model, state_pred, b.x)
+		loglik += logpdf(state_pred, mean(state_filt))
+		loglik += logpdf(observe(track_model, state_filt), b.x)
 	end
-	return LL
+	return loglik
 end
-
 
 function loglikelihood(sg::ScanGraph, lambda_f::Float64, 
 		track_model::LinearGaussianSSM, t1, t2)
