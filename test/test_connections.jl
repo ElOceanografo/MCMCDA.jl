@@ -1,5 +1,13 @@
 println("Testing connections...")
 
+
+println("Connecting graph...")
+connect_graph!(sg, 25, 2)
+println(sg)
+
+@time connect_graph!(sg, 25, 2)
+println(sg)
+
 # for t1 in 16:18
 # 	t2 = t1 + 2
 # 	for i in 1:length(sg.scans[t1])

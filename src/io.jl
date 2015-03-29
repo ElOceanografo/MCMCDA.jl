@@ -1,20 +1,20 @@
 
-function read_targets(filename)
-	blip_table = readtable("data/test_targets.csv")
-	scans = Vector{Blip}[]
-	blips = Blip[]
-	# make array of arrays of blips
-	for df in groupby(blip_table, :t)
-		this_scan = Blip[]
-		for i in 1:size(df, 1)
-			b = Blip(vec(array(df[i, [:x, :y]])), df[i, :t], Edge[], Edge[])
-			push!(this_scan, b)
-			push!(blips, b)
-		end
-		push!(scans, this_scan)
+function read_targets(filename, x_cols=1:2, t_col=3; args...)
+	blip_table = readcsv("data/test_targets.csv"; args...)
+	T = eltype(blip_table)
+	I = Int
+	n = size(blip_table, 1)
+
+	blips = Array(Blip{T}, n)
+
+	for i in 1:n
+		blips[i] = Blip(vec(blip_table[i, x_cols]), blip_table[i, t_col],
+			Edge{T, I}[], Edge{T, I}[])
 	end
-	nblips = [length(scan) for scan in scans]
+	times = blip_table[:, t_col]
+	scan_type = typeof(blips)
+	scans = scan_type[blips[find(times == t)] for t in unique(times)]
+	nblips = I[length(s) for s in scans]
 	nscans = length(scans)
-	edges = Edge[]
-	return ScanGraph(scans, blips, edges, nblips, nscans)
+	return ScanGraph(scans, blips, Edge{T, I}[], nblips, nscans)
 end

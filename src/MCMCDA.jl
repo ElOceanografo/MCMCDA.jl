@@ -1,6 +1,6 @@
 module MCMCDA
 
-using Distributions, DataFrames, StateSpace
+using Distributions, StateSpace
 import Base: show
 
 # export Blip, 

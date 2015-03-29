@@ -1,10 +1,11 @@
 
 # Blip: encapsulates information about a target detection
-type Blip{T}
-	x::Vector{Float64}
-	t::Int64
-	in_edges::Vector{T}
-	out_edges::Vector{T}
+# E is the edge type
+type Blip{T, E}
+	x::Array{T, 1}
+	t::T
+	in_edges::Array{E, 1}
+	out_edges::Array{E, 1}
 end
 
 function show{T}(io::IO, b::Blip{T})
@@ -24,22 +25,22 @@ function in_neighbors{T}(b::Blip{T})
 end
 
 # Edge: connection between blips in the target graph
-type Edge
-	source::Blip
-	target::Blip
+type Edge{T, I<:Integer}
+	source::Blip{T}
+	target::Blip{T}
 	active::Bool
 	proposed::Bool
-	n_active::Int64
-	n_inactive::Int64
+	n_active::I
+	n_inactive::I
 end
 
 # data structure to track blips in time, and their connections to each other
-type ScanGraph
-	scans::Vector{Vector{Blip}}
-	blips::Vector{Blip}
-	edges::Vector{Edge}
-	nblips::Vector{Int64}
-	nscans::Int64
+type ScanGraph{B, E, I<:Integer}
+	scans::Array{Array{B, 1}, 1}
+	blips::Array{B, 1}
+	edges::Array{E, 1}
+	nblips::Array{I, 1}
+	nscans::I
 end
 
 

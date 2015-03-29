@@ -1,4 +1,4 @@
-using MCMCDA, StateSpace, Graphs
+using MCMCDA#, StateSpace#, Graphs
 using Base.Test
 
 if ~ isfile("data/test_targets.csv")
@@ -8,8 +8,8 @@ if ~ isfile("data/test_targets.csv")
 end
 
 include("test_io.jl")
-include("test_connections.jl")
-include("test_probabilities.jl")
+# include("test_connections.jl")
+#include("test_probabilities.jl")
 # include("test_proposal_moves.jl")
 # include("test_samplers.jl")
 
