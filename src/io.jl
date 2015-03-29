@@ -13,7 +13,7 @@ function read_targets(filename, x_cols=1:2, t_col=3; args...)
 	end
 	times = blip_table[:, t_col]
 	scan_type = typeof(blips)
-	scans = scan_type[blips[find(times == t)] for t in unique(times)]
+	scans = scan_type[blips[times .== t] for t in unique(times)]
 	nblips = I[length(s) for s in scans]
 	nscans = length(scans)
 	return ScanGraph(scans, blips, Edge{T, I}[], nblips, nscans)
