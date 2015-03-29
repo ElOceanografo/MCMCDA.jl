@@ -70,20 +70,23 @@ end
 @assert has_active_edge_in(b5)
 @assert in_track(b5)
 
-# @assert n_targets(sg, 1) == 1
-# @assert n_false_targets(sg, 1) == 108
-# @assert n_targets(sg, 5) == 0
-# @assert n_targets(sg, 6) == 1
-# @assert n_false_targets(sg, 5) == 94
-# @assert n_targets(sg) == 7
+@assert n_targets(sg, 1) == 2
+@assert n_false_targets(sg, 1) == 107
+@assert n_targets(sg, 5) == 0
+@assert n_targets(sg, 16) == 1
+@assert n_targets(sg, 17) == 0
+@assert n_targets(sg, 18) == 1
+@assert n_false_targets(sg, 5) == 94
+@assert n_targets(sg) == 7
 
-# @assert n_tracks(sg, 2) == 1
-# @assert n_tracks(sg, 2) == n_targets(sg, 2)
-# @assert n_tracks(sg, 17) == 1
-# @assert n_tracks(sg, 17) > n_targets(sg, 17)
+@assert n_tracks(sg, 2) == 2
+@assert n_tracks(sg, 2) == n_targets(sg, 2)
+@assert n_tracks(sg, 17) == 1
+@assert n_tracks(sg, 17) > n_targets(sg, 17)
 
-# @assert n_tracks(sg) == 3
-# @assert n_tracks_started(sg) == 3
+@assert n_tracks_started(sg) <= n_tracks(sg)
+@assert n_tracks(sg) == 3
+@assert n_tracks_started(sg) == 3
 
 # @assert track_start_indices(sg) == [107, 530, 1594]
 # @assert track_start_indices(sg, 1) == [107]

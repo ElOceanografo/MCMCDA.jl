@@ -130,7 +130,7 @@ connected(b1::Blip, b2::Blip) = b2 in out_neighbors(b1)
 function n_targets(sg::ScanGraph, t::Integer)
 	n = 0
 	for i in 1:length(sg.scans[t])
-		if in_track(sg.scans[t][i], sg)
+		if in_track(sg.scans[t][i])
 			n += 1
 		end
 	end
@@ -149,7 +149,7 @@ end
 function n_false_targets(sg::ScanGraph, t::Integer)
 	n = 0
 	for i in 1:length(sg.scans[t])
-		if ! in_track(sg.scans[t][i], sg)
+		if ! in_track(sg.scans[t][i])
 			n += 1
 		end
 	end
