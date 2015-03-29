@@ -12,7 +12,7 @@ function show{T}(io::IO, b::Blip{T})
 	print("Blip: $(length(b.in_edges))/$(length(b.out_edges)) edges in/out.")
 end
 
-function distance{T}(b1::Blip{T}, b2::Blip{T})
+function distance{B<:Blip}(b1::B, b2::B)
 	return norm(b1.x - b2.x)
 end
 
