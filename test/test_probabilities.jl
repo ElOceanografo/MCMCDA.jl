@@ -27,15 +27,15 @@ track_model = LinearGaussianSSM(F, V, G, W)
 
 println("Calculating cofiguration prior...")
 params = [p_disappear, p_detect, lambda_b, lambda_f]
-LP = config_logprior(blips, params)
-@time LP = config_logprior(blips, params)
+LP = config_logprior(sg, params)
+@time LP = config_logprior(sg, params)
 println(LP)
 
 
 println("Calculating likelihood...")
-LL = loglikelihood(blips, lambda_f, track_model)
-@time LL = loglikelihood(blips, lambda_f, track_model)
+LL = loglikelihood(sg, lambda_f, track_model)
+@time LL = loglikelihood(sg, lambda_f, track_model)
 println(LL)
 
-Lpost = log_posterior(blips, params, track_model)
+Lpost = log_posterior(sg, params, track_model)
 @assert Lpost == LL + LP

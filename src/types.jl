@@ -1,31 +1,66 @@
 
 # Blip: encapsulates information about a target detection
-type Blip{T}
-	x::Vector{T}
+# E is the edge type
+type Blip{T, E}
+	x::Array{T, 1}
 	t::T
-end
-Blip{T1, T2}(x::Array{T1, 1}, t::T2) = Blip(x, convert(T1, t))
-
-function distance{T}(b1::Blip{T}, b2::Blip{T})
-	return sqrt(sum((b1.x - b2.x).^2))
+	in_edges::Array{E, 1}
+	out_edges::Array{E, 1}
 end
 
-function get_blip(v::ExVertex)
-	return v.attributes["blip"]
+function show{T}(io::IO, b::Blip{T})
+	print("Blip: $(length(b.in_edges))/$(length(b.out_edges)) edges in/out.")
+end
+
+function distance{B<:Blip}(b1::B, b2::B)
+	return norm(b1.x - b2.x)
+end
+
+function out_neighbors{T}(b::Blip{T})
+	return [e.target for e in b.out_edges]
+end
+
+function in_neighbors{T}(b::Blip{T})
+	return [e.target for e in b.in_edges]
+end
+
+# Edge: connection between blips in the target graph
+type Edge{T, I<:Integer}
+	source::Blip{T}
+	target::Blip{T}
+	active::Bool
+	proposed::Bool
+	n_active::I
+	n_inactive::I
+end
+
+function show(io::IO, e::Edge)
+	print("Edge: ")
+	if e.active
+		print("active")
+	else
+		print("inactive")
+	end
+	if e.proposed
+		print(" (proposed)")
+	end
 end
 
 # data structure to track blips in time, and their connections to each other
-type ScanGraph
-	scans::Vector{Vector{ExVertex}}
-	graph::AbstractGraph
-	nblips::Vector{Int64}
-	nscans::Int64
+type ScanGraph{B, E, I<:Integer}
+	scans::Array{Array{B, 1}, 1}
+	blips::Array{B, 1}
+	edges::Array{E, 1}
+	nblips::Array{I, 1}
+	nscans::I
 end
 
-function show(io::IO, g::ScanGraph)
-	ns = g.nscans
-	nv = num_vertices(g.graph)
-	ne = num_edges(g.graph)
-	na = sum([e.attributes["active"] for e in edges(g.graph)])
-	println("ScanGraph: $(ns) scans, $(nv) blips, $(ne) connections ($(na) active)")
+
+function show(io::IO, sg::ScanGraph)
+	ns = sg.nscans
+	nv = sum([length(b) for b in sg.scans])
+	ne = length(sg.edges)
+	na = sum([e.active for e in sg.edges])
+	print("ScanGraph: $(ns) scans, $(nv) blips, $(ne) connections ($(na) active)")
 end
+
