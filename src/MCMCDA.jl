@@ -95,7 +95,8 @@ export Blip,
 	propose_split!,
 	propose_extend!,
 	propose_reduce!,
-	propose_merge!
+	propose_merge!,
+	propose_switch!
 
 #################################################
 

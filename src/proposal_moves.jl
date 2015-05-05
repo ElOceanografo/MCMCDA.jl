@@ -87,11 +87,13 @@ function propose_merge!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
 	# find edges connecting two tracks (if any)
 	start_indices = track_start_indices(sg, t1, t2)
 	end_indices = track_end_indices(sg, t1, t2)
+	n_start = length(start_indices[1])
+	n_end = length(end_indices[1])
 	eds = Edge[]
-	for i in 1:length(start_indices)
-		for j in 1:length(end_indices)
-			b1 = sg.scans[start_indices[1][i]][start_indices[2][i]]
-			b2 = sg.scans[end_indices[1][j]][end_indices[2][j]]
+	for i in 1:n_start
+		for j in 1:n_end
+			b1 = sg.scans[end_indices[1][j]][end_indices[2][j]]
+			b2 = sg.scans[start_indices[1][i]][start_indices[2][i]]
 			e = connecting_edge(b1, b2, sg)
 			if e != nothing && ! e.active
 				push!(eds, e)
@@ -155,11 +157,11 @@ propose_update!(sg::ScanGraph, gamma=0.1) = propose_update!(sg, 1, sg.nscans, ga
 
 
 function attempt_switch!(v1::Blip, v2::Blip, sg::ScanGraph)
-	if ends_track(v1, sg) | ends_track(v2, sg)
+	if ends_track(v1) | ends_track(v2)
 		return false
 	end
-	e1, v1_next = next_in_track(v1, sg)
-	e2, v2_next = next_in_track(v2, sg)
+	e1, v1_next = next_in_track(v1)
+	e2, v2_next = next_in_track(v2)
 	e_cross12 = connecting_edge(v1, v2_next, sg)
 	e_cross21 = connecting_edge(v2, v1_next, sg)
 	if e_cross12 != nothing && e_cross21 != nothing
@@ -176,7 +178,7 @@ function attempt_switch!(v1::Blip, v2::Blip, sg::ScanGraph)
 end
 
 function propose_switch!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
-	for t in shuffle([t1:(t2-1)])
+	for t in shuffle([t1:(t2-1);])
 		ii = in_track_indices(sg, t)
 		if length(ii) > 1
 			i1, i2 = sample(ii, 2)
