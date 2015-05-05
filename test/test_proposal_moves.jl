@@ -72,7 +72,7 @@ ea.active = false
 n1 = sum([e.active for e in sg.edges])
 n2 = n_targets(sg)
 propose_merge!(sg, 1, 6)
-@assert sum([e.active for e in edges(sg.graph)]) == n1 + 1
+@assert sum([e.active for e in sg.edges]) == n1 + 1
 @assert n_targets(sg) == n2
 accept_move!(sg)
 

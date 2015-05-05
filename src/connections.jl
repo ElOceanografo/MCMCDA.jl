@@ -186,13 +186,13 @@ end
 
 connected(b1::Blip, b2::Blip) = b2 in out_neighbors(b1)
 
-# function connecting_edge(v1::ExVertex, v2::ExVertex, sg::ScanGraph)
-# 	for e in out_edges(v1, sg.graph)
-# 		if target(e) == v2
-# 			return e
-# 		end
-# 	end
-# end
+function connecting_edge(b1::Blip, b2::Blip, sg::ScanGraph)
+	for e in b1.out_edges
+		if e.target == b2
+			return e
+		end
+	end
+end
 
 # function starts_track(v::ExVertex, sg::ScanGraph)
 # 	return (! has_link_in(v, sg)) && has_link_out(v, sg)
