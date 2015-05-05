@@ -50,6 +50,101 @@ in_track(b::Blip) = has_active_edge_in(b) | has_active_edge_out(b)
 starts_track(b::Blip) = ! has_active_edge_in(b) & has_active_edge_out(b)
 ends_track(b::Blip) = has_active_edge_in(b) & ! has_active_edge_out(b)
 
+function next_in_track(b::Blip)
+	if has_active_edge_out(b)
+		for e in b.out_edges
+			if e.active
+				return e, e.target
+			end
+		end
+	else
+		error("No more blips in track")
+	end
+end
+
+function prev_in_track(b::Blip)
+	if has_active_edge_in(b)
+		for e in b.in_edges
+			if e.active
+				return e, e.source
+			end
+		end
+	else
+		error("No more blips in track")
+	end
+end
+
+
+function next_blip_in_track(b::Blip)
+	if length(b.out_edges) == 0
+		return b
+	end
+	for e in b.out_edges
+		if e.active
+			return e.target
+		end
+	end
+	return b # no active edges
+end
+
+function prev_blip_in_track(b::Blip)
+	if length(b.in_edges) == 0
+		return b
+	end
+	for e in b.in_edges
+		if e.active
+			return e.source
+		end
+	end
+	return b # no active edges
+end
+
+function iter_track(b::Blip)
+	function _it()
+		while has_active_edge_out(b)
+			produce(b)
+			b = next_blip_in_track(b)
+		end
+		produce(b)
+	end
+	return Task(_it)
+end
+
+function track_length_forward(b::Blip)
+	n = 0
+	for b in iter_track(b)
+		n += 1
+	end
+	return n - 1 # number of edges, not blips
+end
+
+function iter_track_reverse(b::Blip)
+	function _it()
+		while has_active_edge_in(b)
+			produce(b)
+			b = prev_blip_in_track(b)
+		end
+		produce(b)
+	end
+	return Task(_it)
+end
+
+function track_length_reverse(b::Blip)
+	n = 0
+	for b in iter_track_reverse(b)
+		n += 1
+	end
+	return n - 1 # number of edges, not blips
+end
+
+function track_length(b::Blip; reverse=false)
+	if reverse
+		return track_length_reverse(b)
+	else
+		return track_length_forward(b)
+	end
+end
+
 # function n_edges(v::ExVertex, g::AbstractGraph)
 # 	return in_degree(v, g) + out_degree(v, g)
 # end
@@ -232,77 +327,95 @@ end
 n_tracks_ended(sg::ScanGraph) = n_tracks_ended(sg, 1, sg.nscans)
 
 
-# function n_proposed(sg::ScanGraph, t1::Integer, t2::Integer)
-# 	return return sum(Bool[e.attributes["proposed"] for e in edges(sg.graph)])
-# end
-# n_proposed(sg::ScanGraph) = n_proposed(sg, 1, sg.nscans)
+function n_proposed(sg::ScanGraph, t1::Integer, t2::Integer)
+	n = 0
+	for t in t1:(t2 - 1) # only consider edges inside range
+		for blip in sg.scans[t]
+			for edge in blip.out_edges
+				if edge.proposed
+					n += 1
+				end
+			end
+		end
+	end
+	return n
+end
+n_proposed(sg::ScanGraph) = n_proposed(sg, 1, sg.nscans)
 
 
-# function track_start_indices(sg::ScanGraph)
-# 	return find(Bool[starts_track(v, sg) for v in vertices(sg.graph)])
-# end
-
-# function track_start_indices(sg::ScanGraph, t::Integer)
-# 	return find(Bool[starts_track(v, sg) for v in sg.scans[t]])
-# end
-
-
-# function track_start_indices(sg::ScanGraph, t1::Integer, t2::Integer)
-# 	# Special case: all scans specified.  Calling the other method will
-# 	# be a bit faster, because the array doesn't have to be bult up.
-# 	if t1 == 1 && t2 == sg.nscans
-# 		return track_start_indices(sg)
-# 	end
-# 	indices = Int64[]
-# 	for i in t1:t2
-# 		for v in sg.scans[i]
-# 			if starts_track(v, sg)
-# 				push!(indices, v.index)
-# 			end
-# 		end
-# 	end
-# 	return indices
-# end
+function iter_blips(sg::ScanGraph, t1::Integer, t2::Integer)
+	function producer()
+		for t in t1:t2
+			for blip in sg.scans[t]
+				produce(blip)
+			end
+		end
+	end
+	return Task(producer)
+end
+iter_blips(sg::ScanGraph, t::Integer) = iter_blips(sg, t, t)
+iter_blips(sg::ScanGraph) = iter_blips(sg, 1, sg.nscans)
 
 
-# function track_end_indices(sg::ScanGraph)
-# 	return find(Bool[ends_track(v, sg) for v in vertices(sg.graph)])
-# end
+function track_start_indices(sg::ScanGraph, t1::Integer, t2::Integer)
+	indices = Int64[]
+	scans = Int64[]
+	for i in t1:t2
+		for j in 1:length(sg.scans[i])
+			if starts_track(sg.scans[i][j])
+				push!(scans, i)
+				push!(indices, j)
+			end
+		end
+	end
+	return (scans, indices)
+end
 
-# function track_end_indices(sg::ScanGraph, t::Integer)
-# 	return find(Bool[ends_track(v, sg) for v in sg.scans[t]])
-# end
+function track_start_indices(sg::ScanGraph)
+	return track_start_indices(sg, 1, sg.nscans)
+end
 
-# function track_end_indices(sg::ScanGraph, t1::Integer, t2::Integer)
-# 	# Special case: all scans specified.  Calling the other method will
-# 	# be a bit faster, because the array doesn't have to be bult up.
-# 	if t1 == 1 && t2 == sg.nscans
-# 		return track_end_indices(sg)
-# 	end
-# 	indices = Int64[]
-# 	for i in t1:t2
-# 		for v in sg.scans[i]
-# 			if ends_track(v, sg)
-# 				push!(indices, v.index)
-# 			end
-# 		end
-# 	end
-# 	return indices
-# endExVertex
+function track_start_indices(sg::ScanGraph, t::Integer)
+	return track_start_indices(sg, t, t)
+end
+
+function track_end_indices(sg::ScanGraph, t1::Integer, t2::Integer)
+	indices = Int64[]
+	scans = Int64[]
+	for i in t1:t2
+		for j in 1:length(sg.scans[i])
+			if ends_track(sg.scans[i][j])
+				push!(scans, i)
+				push!(indices, j)
+			end
+		end
+	end
+	return (scans, indices)
+end
+
+function track_end_indices(sg::ScanGraph)
+	return track_end_indices(sg, 1, sg.nscans)
+end
+
+function track_end_indices(sg::ScanGraph, t::Integer)
+	return track_end_indices(sg, t, t)
+end
 
 
-# function false_target_indices(sg::ScanGraph)
-# 	return find(Bool[! in_track(v, sg) for v in vertices(sg.graph)])
-# end
 
-# function false_target_indices(sg::ScanGraph, t::Integer)
-# 	return find(Bool[! in_track(v, sg) for v in sg.scans[t]])
-# end
 
-# function in_track_indices(sg::ScanGraph)
-# 	return find(Bool[in_track(v, sg) for v in vertices(sg.graph)])
-# end
+function false_target_indices(sg::ScanGraph)
+	return find(Bool[! in_track(blip) for blip in sg.blips])
+end
 
-# function in_track_indices(sg::ScanGraph, t::Integer)
-# 	return find(Bool[in_track(v, sg) for v in sg.scans[t]])
-# end
+function false_target_indices(sg::ScanGraph, t::Integer)
+	return find(Bool[! in_track(blip) for blip in sg.scans[t]])
+end
+
+function in_track_indices(sg::ScanGraph)
+	return find(Bool[in_track(blip) for blip in sg.blips])
+end
+
+function in_track_indices(sg::ScanGraph, t::Integer)
+	return find(Bool[in_track(blip) for blip in sg.scans[t]])
+end

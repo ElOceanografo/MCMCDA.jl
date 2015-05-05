@@ -2,91 +2,93 @@
 println("Testing proposal moves...")
 srand(1)
 # for i in 1:100
-# 	v = vertices(blips.graph)[i]
-# 	if ! in_track(v, blips) && out_degree(v, blips.graph) > 0
+# 	v = vertices(sg.graph)[i]
+# 	if ! in_track(v, sg) && out_degree(v, sg.graph) > 0
 # 		println(i)
 # 		break
 # 	end
 # end
 
-va = vertices(blips.graph)[10]
-e = out_edges(va, blips.graph)[1]
-n1 = n_tracks_started(blips)
+ba = sg.blips[10]
+e = ba.out_edges[1]
+n1 = n_tracks_started(sg)
 
-extend!(va, blips, 0)
-@assert n_tracks_started(blips) == n1 + 1
+extend!(ba, 0)
+@assert n_tracks_started(sg) == n1 + 1
 
-@assert e.attributes["active"]
-@assert e.attributes["proposed"]
-@assert n_proposed(blips) > 0
+@assert e.active
+@assert e.proposed
+@assert n_proposed(sg) > 0
 
-reject_move!(blips)
-@assert ! e.attributes["active"]
-@assert n_proposed(blips) == 0
-@assert e.attributes["freq_inactive"] == 1
+reject_move!(sg)
+@assert ! e.active
+@assert n_proposed(sg) == 0
+@assert e.n_inactive == 1
 
-extend!(va, blips, 0)
-@assert e.attributes["active"]
-@assert e.attributes["proposed"]
+extend!(ba, 0)
+@assert e.active
+@assert e.proposed
 
-accept_move!(blips)
-@assert n_proposed(blips) == 0
-@assert e.attributes["active"]
-@assert e.attributes["freq_active"] == 1
+accept_move!(sg)
+@assert n_proposed(sg) == 0
+@assert e.active
+@assert e.n_active == 1
 
-propose_birth!(blips, 0) # first is a misfire with this random seed
-propose_birth!(blips, 0)
-accept_move!(blips)
+propose_birth!(sg, 0) # first is a misfire with this random seed
+propose_birth!(sg, 0)
+accept_move!(sg)
 
-n1 = n_tracks_started(blips)
-propose_death!(blips)
-@assert n_tracks_started(blips) == n1 - 1
+n1 = n_tracks_started(sg)
+propose_death!(sg)
+@assert n_tracks_started(sg) == n1 - 1
 
-accept_move!(blips)
+accept_move!(sg)
 
 # make sure there's at least one long track to split
-for v in blips.scans[1]
-	if ! in_track(v, blips)
-		extend!(v, blips)
+for v in sg.scans[1]
+	if ! in_track(v)
+		extend!(v)
 	end
 end
 
-n1 = n_tracks_started(blips)
-propose_split!(blips)
-@assert n_tracks_started(blips) == n1 + 1
-accept_move!(blips)
+n1 = n_tracks_started(sg)
+propose_split!(sg)
+@assert n_tracks_started(sg) == n1 + 1
+accept_move!(sg)
 
-n1 = n_targets(blips)
-propose_extend!(blips)
-@assert n_targets(blips) > n1
-accept_move!(blips)
+n1 = n_targets(sg)
+propose_extend!(sg)
+@assert n_targets(sg) > n1
+accept_move!(sg)
 
-n1 = n_targets(blips)
-propose_reduce!(blips)
-@assert n_targets(blips) < n1
-accept_move!(blips)
+n1 = n_targets(sg)
+propose_reduce!(sg)
+@assert n_targets(sg) < n1
+accept_move!(sg)
 
-ea, va = next_in_track(v3, blips)
-ea.attributes["active"] = false
-n1 = sum([e.attributes["active"] for e in edges(blips.graph)])
-n2 = n_targets(blips)
-propose_merge!(blips, 1, 6)
-@assert sum([e.attributes["active"] for e in edges(blips.graph)]) == n1 + 1
-@assert n_targets(blips) == n2
-accept_move!(blips)
 
-propose_switch!(blips)
+ea, ba = next_in_track(sg.blips[108])
+ea.active = false
+n1 = sum([e.active for e in sg.edges])
+n2 = n_targets(sg)
+propose_merge!(sg, 1, 6)
+@assert sum([e.active for e in edges(sg.graph)]) == n1 + 1
+@assert n_targets(sg) == n2
+accept_move!(sg)
 
+propose_switch!(sg)
 
 
 for i in 1:20
-	propose_update!(blips)
-	accept_move!(blips)
+	propose_update!(sg)
+	accept_move!(sg)
+	println(i)
 end
 
 t1 = time()
 for i in 1:100
-	propose_move!(blips, 1, blips.nscans)
+	propose_move!(sg, 1, sg.nscans)
+	println(i)
 end
 t2 = time()
 println(t2 - t1, " seconds")

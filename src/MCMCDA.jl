@@ -71,16 +71,30 @@ export Blip,
 	ends_track,
 	iter_track,
 	track_length,
+	next_in_track,
 	n_tracks_started,
 	n_tracks_ended,
 	n_tracks,
 	n_targets,
 	n_false_targets,
 	connected,
+	n_proposed,
+	false_target_indices,
+	in_track_indices,
+	# probabilities.jl
 	track_loglikelihood,
 	loglikelihood,
 	config_logprior,
-	log_posterior
+	log_posterior,
+	extend!,
+	reject_move!,
+	accept_move!,
+	propose_birth!,
+	propose_death!,
+	propose_split!,
+	propose_extend!,
+	propose_reduce!,
+	propose_merge!
 
 #################################################
 
@@ -88,7 +102,7 @@ include("types.jl")
 include("io.jl")
 include("connections.jl")
 include("probabilities.jl")
-# include("proposal_moves.jl")
+include("proposal_moves.jl")
 # include("samplers.jl")
 
 end # module
