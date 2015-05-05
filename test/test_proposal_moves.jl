@@ -84,13 +84,11 @@ propose_switch!(sg)
 for i in 1:20
 	propose_update!(sg)
 	accept_move!(sg)
-	println(i)
 end
 
 t1 = time()
 for i in 1:100
 	propose_move!(sg, 1, sg.nscans)
-	println(i)
 end
 t2 = time()
 println(t2 - t1, " seconds")
