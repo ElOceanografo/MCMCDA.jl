@@ -31,8 +31,8 @@ function loglikelihood(sg::ScanGraph, lambda_f::Float64,
 end
 
 function loglikelihood(sg::ScanGraph, lambda_f::Float64, 
-		track_model::LinearGaussianSSM)
-	return loglikelihood(sg, lambda_f, track_model, 1, sg.nscans)
+		track_model::LinearGaussianSSM, sigma0=100.0)
+	return loglikelihood(sg, lambda_f, track_model, 1, sg.nscans, sigma0)
 end
 
 function summary_numbers(sg::ScanGraph, i::Integer)
@@ -69,12 +69,12 @@ function config_logprior(sg::ScanGraph, params::Vector{Float64})
 end
 
 function log_posterior(sg::ScanGraph, params::Vector{Float64}, 
-		track_model::LinearGaussianSSM, t1, t2)
-	LL = loglikelihood(sg, params[4], track_model, t1, t2)
+		track_model::LinearGaussianSSM, t1, t2, sigma0=100.0)
+	LL = loglikelihood(sg, params[4], track_model, t1, t2, sigma0)
 	return LL + config_logprior(sg, params, t1, t2)
 end
 
 function log_posterior(sg::ScanGraph, params::Vector{Float64}, 
-		track_model::LinearGaussianSSM)
-	log_posterior(sg, params, track_model, 1, sg.nscans)
+		track_model::LinearGaussianSSM, sigma0=100.0)
+	log_posterior(sg, params, track_model, 1, sg.nscans, sigma0)
 end

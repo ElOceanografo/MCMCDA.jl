@@ -209,6 +209,7 @@ function propose_move!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
 	else # no tracks
 		this_move! = moves[1]
 	end
+	println(symbol(this_move!))
 	this_move!(sg, t1, t2, gamma)
 end
 propose_move!(sg::ScanGraph, gamma=0.1) = propose_move!(sg, 1, sg.nscans, gamma)
