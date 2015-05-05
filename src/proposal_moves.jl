@@ -56,7 +56,7 @@ end
 propose_death!(sg::ScanGraph, gamma=0.1) = propose_death!(sg, 1, sg.nscans, gamma)
 
 
-function propose_split!(sg::ScanGraph, t1::Integer, t2::Integer)
+function propose_split!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
 	# choose random track
 	scan_i, blip_i = track_start_indices(sg, t1, t2)
 	i = sample(1:length(scan_i))
@@ -141,16 +141,19 @@ propose_reduce!(sg::ScanGraph, gamma=0.1) = propose_reduce!(sg, 1, sg.nscans, ga
 
 function propose_update!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
 	# select track
-	i = sample(track_start_indices(sg, t1, t2))
-	v1 = vertices(sg.graph)[i]
+	scan_i, blip_i = track_start_indices(sg, t1, t2)
+	i = sample(1:length(scan_i))
+	b1 = sg.scans[scan_i[i]][blip_i[i]]
 	# select vertex in track with > 1 out edge
-	eds, verts = get_track(v1, sg)
-	fork_i = find(v -> out_degree(v, sg.graph) > 1, verts[1:end-1])
+	eds, verts = get_track(b1)
+	fork_i = find(b -> length(b.out_edges) > 1, verts[1:end-1])
 	if length(fork_i) > 0
 		i = sample(fork_i)
-		e = eds[i]
-		propose_deactivate!(e)
-		extend!(verts[i], sg, gamma)
+		e1 = eds[i]
+		e2 = sample(e1.source.out_edges[e1.source.out_edges .!= e1])
+		propose_deactivate!(e1)
+		propose_activate!(e2)
+		extend!(e2.target, gamma)
 	end
 end
 propose_update!(sg::ScanGraph, gamma=0.1) = propose_update!(sg, 1, sg.nscans, gamma)
@@ -206,7 +209,7 @@ function propose_move!(sg::ScanGraph, t1::Integer, t2::Integer, gamma=0.1)
 	else # no tracks
 		this_move! = moves[1]
 	end
-	this_move!(sg, t1, t2)
+	this_move!(sg, t1, t2, gamma)
 end
 propose_move!(sg::ScanGraph, gamma=0.1) = propose_move!(sg, 1, sg.nscans, gamma)
 

@@ -1,8 +1,4 @@
 
-# max_missed = floor(log(1 - p_max_lost) / log(p_detect))
-# max_missed = max(max_missed, 1)
-# max_missed = min(g.nscans - 1, max_missed)
-
 function add_edge!(b1::Blip, b2::Blip, sg::ScanGraph)
 	if ! (b2 in out_neighbors(b1))
 		e = Edge(b1, b2, false, false, 0, 0)
@@ -145,44 +141,18 @@ function track_length(b::Blip; reverse=false)
 	end
 end
 
-# function n_edges(v::ExVertex, g::AbstractGraph)
-# 	return in_degree(v, g) + out_degree(v, g)
-# end
 
-# function all_edges(v::ExVertex, g::AbstractGraph)
-# 	return [in_edges(v, g), out_edges(v, g)]
-# end
-
-# in_blips(v::ExVertex, sg::ScanGraph) = [source(e) for e in in_edges(v, sg.graph)]
-# out_blips(v::ExVertex, sg::ScanGraph) = [target(e) for e in out_edges(v, sg.graph)]
-
-# function next_in_track(b::Blip)
-# 	for e in b.out_edges
-# 		if e.active
-# 			return (e, e.target)
-# 		end
-# 	end
-# end
-
-# function prev_in_track(b::Blip)
-# 	for e in b.in_edges
-# 		if e.active
-# 			return (e, e.source)
-# 		end
-# 	end
-# end
-
-# function get_track(b1::ExVertex, sg::ScanGraph)
-# 	verts = [v1]
-# 	eds = ExEdge[]
-# 	while has_link_out(v1, sg)
-# 		e, v2 = next_in_track(v1, sg)
-# 		push!(verts, v2)
-# 		push!(eds, e)
-# 		v1 = v2
-# 	end
-# 	return eds, verts
-# end
+function get_track(b1::Blip)
+	verts = [b1]
+	eds = Edge[]
+	while has_active_edge_out(b1)
+		e, b2 = next_in_track(b1)
+		push!(verts, b2)
+		push!(eds, e)
+		b1 = b2
+	end
+	return eds, verts
+end
 
 connected(b1::Blip, b2::Blip) = b2 in out_neighbors(b1)
 
@@ -193,33 +163,6 @@ function connecting_edge(b1::Blip, b2::Blip, sg::ScanGraph)
 		end
 	end
 end
-
-# function starts_track(v::ExVertex, sg::ScanGraph)
-# 	return (! has_link_in(v, sg)) && has_link_out(v, sg)
-# end
-
-# function ends_track(v::ExVertex, sg::ScanGraph)
-# 	return has_link_in(v, sg) && (! has_link_out(v, sg))
-# end
-
-
-# function track_length(v1::ExVertex, sg::ScanGraph, forward=true)
-# 	n = 0
-# 	if forward
-# 		while has_link_out(v1, sg)
-# 			n += 1
-# 			e, v2 = next_in_track(v1, sg)
-# 			v1 = v2
-# 		end
-# 	else
-# 		while has_link_in(v1, sg)
-# 			n += 1
-# 			e, v2 = prev_in_track(v1, sg)
-# 			v1 = v2
-# 		end
-# 	end
-# 	return n
-# end
 
 # ## Number of detected targets (i.e., blips assigned to a track)
 function n_targets(sg::ScanGraph, t::Integer)
