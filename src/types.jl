@@ -34,6 +34,18 @@ type Edge{T, I<:Integer}
 	n_inactive::I
 end
 
+function show(io::IO, e::Edge)
+	print("Edge: ")
+	if e.active
+		print("active")
+	else
+		print("inactive")
+	end
+	if e.proposed
+		print(" (proposed)")
+	end
+end
+
 # data structure to track blips in time, and their connections to each other
 type ScanGraph{B, E, I<:Integer}
 	scans::Array{Array{B, 1}, 1}
