@@ -1,4 +1,4 @@
-using MCMCDA, StateSpace#, Graphs
+using MCMCDA, StateSpace
 using Base.Test
 
 if ~ isfile("data/test_targets.csv")

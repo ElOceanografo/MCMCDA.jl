@@ -67,7 +67,9 @@ propose_reduce!(sg)
 accept_move!(sg)
 
 
-ea, ba = next_in_track(sg.blips[108])
+ea, ba = next_in_track(sg.scans[1][106]) # track with 13 blips
+ea, ba = next_in_track(ba)
+ea, ba = next_in_track(ba)
 ea.active = false
 n1 = sum([e.active for e in sg.edges])
 n2 = n_targets(sg)
